@@ -59,8 +59,8 @@ all: main-build
 main-build: stm32h7-asm.elf secondary-outputs
 
 # Tool invocations
-stm32h7-asm.elf stm32h7-asm.map: $(OBJS) $(USER_OBJS) C:\Users\Jakob\STM32CubeIDE\workspace_1.11.0\stm32h7-asm\STM32H750XBHX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "stm32h7-asm.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\Jakob\STM32CubeIDE\workspace_1.11.0\stm32h7-asm\STM32H750XBHX_FLASH.ld" --specs=nosys.specs -Wl,-Map="stm32h7-asm.map" -Wl,--cref -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb
+stm32h7-asm.elf stm32h7-asm.map: $(OBJS) $(USER_OBJS) ../STM32H750XBHX_RAM.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "stm32h7-asm.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"../STM32H750XBHX_RAM.ld" --specs=nosys.specs -Wl,-Map="stm32h7-asm.map" -Wl,--cref -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb
 	@echo 'Finished building target: $@'
 	@echo ' '
 
