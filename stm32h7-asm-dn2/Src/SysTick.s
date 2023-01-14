@@ -1,19 +1,19 @@
-	.syntax unified
-	.cpu cortex-m7
-	.thumb
+.syntax unified
+.cpu cortex-m7
+.thumb
 
-	.equ SCS_BASE, 0xe000e000
-	.equ SCS_SYST_CSR, 0x10
-	.equ SCS_SYST_RVR, 0x14
-	.equ SCS_SYST_CVR, 0x18
-	.equ RCC_APB1LENR, 0xE8
-	.equ RCC_BASE, 0x58024400
+.equ SCS_BASE, 0xe000e000
+.equ SCS_SYST_CSR, 0x10
+.equ SCS_SYST_RVR, 0x14
+.equ SCS_SYST_CVR, 0x18
+.equ RCC_APB1LENR, 0xE8
+.equ RCC_BASE, 0x58024400
 
-	.text
-	.align
+.text
+.align
 
-	.type	init_tc0_ms %function
-	.global	init_tc0_ms
+.type	init_tc0_ms %function
+.global	init_tc0_ms
 
 init_tc0_ms:
 	push { r0, lr }
@@ -23,8 +23,8 @@ init_tc0_ms:
 
 	pop { r0, pc }
 
-	.type 	init_tc0 %function
-	.global init_tc0
+.type 	init_tc0 %function
+.global init_tc0
 
 init_tc0:
 	push { r1, lr }
@@ -39,8 +39,8 @@ init_tc0:
 
 	pop { r1, pc }
 
-	.type 	delay_tc %function
-	.global delay_tc
+.type 	delay_tc %function
+.global delay_tc
 
 delay_tc:
 	push { r1, r2, lr }

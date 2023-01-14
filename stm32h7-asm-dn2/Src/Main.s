@@ -4,10 +4,12 @@
  *  Created on: Aug 24, 2022
  *      Author: rozman
  */
+.type	display_morse %function
+.global display_morse
 
-		  .syntax unified
-		  .cpu cortex-m7
-		  .thumb
+.syntax unified
+.cpu cortex-m7
+.thumb
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,16 +20,16 @@
 
 
 // Start of data section
- 		.data
+.data
 input:	.space 128
- 		.align
+.align
 
 // Start of text section
-  		.text
+.text
 
-  		.type  main, %function
-  		.global main
-   	   	.align
+.type  main, %function
+.global main
+.align
 main:
 	bl init_tc0_ms
 	bl init_usart3
@@ -49,8 +51,36 @@ main:
 	bl wait_button
 
 	ldr r0, =input
+	bl change
+	ldr r0, =input
 	bl send_string_usart3
 	bl green_led_off
 
 
 __end: 	b 	__end
+
+.type	change %function
+change:
+	push { r4, lr }
+
+loop:
+	ldrb r4, [r0]
+	cmp r4, #0x41
+	blo skip
+	cmp r4, #0x7A
+	bhi skip
+	cmp r4, #0x5A
+	bls switch
+	cmp r4, #0x61
+	bhs switch
+	b skip
+
+	switch:
+	eor r4, #(1 << 5)
+
+	skip:
+	strb r4, [r0], #1
+	cmp r4, #0
+	bne loop
+
+	pop { r4, pc }
