@@ -4,95 +4,93 @@
 	.thumb
 
 .data
-
-center_message:	.asciz "Center\n\r"
-left_message:	.asciz "Left\n\r"
-right_message:	.asciz "Right\n\r"
-up_message:		.asciz "Up\n\r"
-down_message:	.asciz "Down\n\r"
-
-		.align
+struct:	.space 24
+.align
 .text
 
 .type 	main %function
 .global main
 
 main:
-	bl init_lcd
-	b __end
-	bl init_red_led
-	bl init_green_led
-
-	bl red_led_on
-	bl green_led_on
-	bl red_led_off
-	bl green_led_off
-//	bl init_usart2
-//	bl init_joystick
-//loop:
-//	bl print_joystick_center
-//	bl print_joystick_left
-//	bl print_joystick_right
-//	bl print_joystick_up
-//	bl print_joystick_down
-//	beq loop
-
-
+	bl c_function1
+	bl asm_function2
+	bl c_function3
+	bl asm_function4
 __end: b __end
 
-print_joystick_center:
-	push { r0, lr }
-	bl read_joystick_center
-	tst r0, #1
-	ldr r0, =center_message
+.type	asm_function1 %function
+.global	asm_function1
 
-	IT ne
-	blne snd_string_usart2
+asm_function1:
+	push { r4, r5, lr }
 
-	pop { r0, pc }
+	ldr r4, [sp, #12]
+	ldr r5, [sp, #16]
+
+	pop { r4, r5, pc }
 
 
-print_joystick_left:
-	push { r0, lr }
-	bl read_joystick_left
-	tst r0, #1
-	ldr r0, =left_message
+.type	asm_function2 %function
+.global	asm_function2
 
-	IT ne
-	blne snd_string_usart2
+asm_function2:
+	push { r4, lr }
+	ldr r0, =1
+	ldr r1, =2
+	ldr r2, =3
+	ldr r3, =4
 
-	pop { r0, pc }
+	ldr r4, =6
+	str r4, [sp, #-4]!
+	ldr r4, =5
+	str r4, [sp, #-4]!
 
-print_joystick_right:
-	push { r0, lr }
-	bl read_joystick_right
-	tst r0, #1
-	ldr r0, =right_message
+	bl c_function2
 
-	IT ne
-	blne snd_string_usart2
+	add sp, #8
 
-	pop { r0, pc }
+	pop { r4, pc }
 
-print_joystick_up:
-	push { r0, lr }
-	bl read_joystick_up
-	tst r0, #1
-	ldr r0, =up_message
+.type	asm_function3 %function
+.global	asm_function3
 
-	IT ne
-	blne snd_string_usart2
+asm_function3:
+	push { r4, lr }
 
-	pop { r0, pc }
+	ldr r4, =1
+	str r4, [r0]
+	ldr r4, =2
+	str r4, [r0, #4]
+	ldr r4, =3
+	str r4, [r0, #8]
+	ldr r4, =4
+	str r4, [r0, #12]
+	ldr r4, =5
+	str r4, [r0, #16]
+	ldr r4, =6
+	str r4, [r0, #20]
 
-print_joystick_down:
-	push { r0, lr }
-	bl read_joystick_down
-	tst r0, #1
-	ldr r0, =down_message
+	pop { r4, pc }
 
-	IT ne
-	blne snd_string_usart2
+.type	asm_function4 %function
+.global	asm_function4
 
-	pop { r0, pc }
+asm_function4:
+	push { r4, r5, r6, lr }
+
+	sub sp, #24
+	mov r0, sp
+
+	bl c_function4
+
+	ldr r1, [r0]
+	ldr r2, [r0, #4]
+	ldr r3, [r0, #8]
+	ldr r4, [r0, #12]
+	ldr r5, [r0, #16]
+	ldr r6, [r0, #20]
+
+	add sp, #24
+
+	pop { r4, r5, r6, pc }
 

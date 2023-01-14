@@ -29,11 +29,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  12 .debug_aranges 000000d0  00000000  00000000  000204b8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_str    000000d7  00000000  00000000  00020588  2**0
+ 13 .debug_str    000000c3  00000000  00000000  00020588  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_ranges 00000040  00000000  00000000  00020660  2**3
+ 14 .debug_ranges 00000040  00000000  00000000  00020650  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_frame  00000094  00000000  00000000  000206a0  2**2
+ 15 .debug_frame  00000094  00000000  00000000  00020690  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -67,225 +67,533 @@ Disassembly of section .text:
 240002d4:	240004ac 	.word	0x240004ac
 
 240002d8 <init_green_led>:
+
+	.type 	init_green_led %function
+	.global init_green_led
+
+init_green_led:
+	push { r0, r1, lr }
 240002d8:	b503      	push	{r0, r1, lr}
+	ldr r0, =RCC_AHB4ENR
 240002da:	4828      	ldr	r0, [pc, #160]	; (2400037c <loop_button+0xc>)
+	ldr r1, [r0]
 240002dc:	6801      	ldr	r1, [r0, #0]
+	orr r1, #(1 << 9)
 240002de:	f441 7100 	orr.w	r1, r1, #512	; 0x200
+	str r1, [r0]
 240002e2:	6001      	str	r1, [r0, #0]
+
+	ldr r0, =GPIOJ_BASE
 240002e4:	4826      	ldr	r0, [pc, #152]	; (24000380 <loop_button+0x10>)
+	ldr r1, [r0, #GPIOx_MODER]
 240002e6:	6801      	ldr	r1, [r0, #0]
+	and r1, #0xFFFFFFCF
 240002e8:	f021 0130 	bic.w	r1, r1, #48	; 0x30
+	orr r1, #0x00000010
 240002ec:	f041 0110 	orr.w	r1, r1, #16
+	str r1, [r0, #GPIOx_MODER]
 240002f0:	6001      	str	r1, [r0, #0]
+
+	pop { r0, r1, pc }
 240002f2:	bd03      	pop	{r0, r1, pc}
 
 240002f4 <init_red_led>:
+
+	.type	init_red_led %function
+	.global	init_red_led
+
+init_red_led:
+	push { r0, r1, lr }
 240002f4:	b503      	push	{r0, r1, lr}
+	ldr r0, =RCC_AHB4ENR
 240002f6:	4821      	ldr	r0, [pc, #132]	; (2400037c <loop_button+0xc>)
+	ldr r1, [r0]
 240002f8:	6801      	ldr	r1, [r0, #0]
+	orr r1, #(1 << 8)
 240002fa:	f441 7180 	orr.w	r1, r1, #256	; 0x100
+	str r1, [r0]
 240002fe:	6001      	str	r1, [r0, #0]
+
+	ldr r0, =GPIOI_BASE
 24000300:	4820      	ldr	r0, [pc, #128]	; (24000384 <loop_button+0x14>)
+	ldr r1, [r0, #GPIOx_MODER]
 24000302:	6801      	ldr	r1, [r0, #0]
+	and r1, #0xF3FFFFFF
 24000304:	f021 6140 	bic.w	r1, r1, #201326592	; 0xc000000
+	orr r1, #0x04000000
 24000308:	f041 6180 	orr.w	r1, r1, #67108864	; 0x4000000
+	str r1, [r0, #GPIOx_MODER]
 2400030c:	6001      	str	r1, [r0, #0]
+
+	pop { r0, r1, pc }
 2400030e:	bd03      	pop	{r0, r1, pc}
 
 24000310 <init_button>:
+
+	.type	init_button %function
+	.global	init_button
+
+init_button:
+	push { r0, r1, r2, lr }
 24000310:	b507      	push	{r0, r1, r2, lr}
+	ldr r0, =RCC_AHB4ENR
 24000312:	481a      	ldr	r0, [pc, #104]	; (2400037c <loop_button+0xc>)
+	ldr r1, [r0]
 24000314:	6801      	ldr	r1, [r0, #0]
+	orr r1, #0x00000004
 24000316:	f041 0104 	orr.w	r1, r1, #4
+	str r1, [r0]
 2400031a:	6001      	str	r1, [r0, #0]
+
+	ldr r0, =GPIOC_BASE
 2400031c:	481a      	ldr	r0, [pc, #104]	; (24000388 <loop_button+0x18>)
+	ldr r1, [r0, #GPIOx_MODER]
 2400031e:	6801      	ldr	r1, [r0, #0]
+	and r1, #0xF3FFFFFF
 24000320:	f021 6140 	bic.w	r1, r1, #201326592	; 0xc000000
+	str r1, [r0, #GPIOx_MODER]
 24000324:	6001      	str	r1, [r0, #0]
+
+	ldr r1, [r0, #GPIOx_PUPDR]
 24000326:	68c1      	ldr	r1, [r0, #12]
+	ldr r2, =GPIOx_PUPDR_CLEAR
 24000328:	f06f 6240 	mvn.w	r2, #201326592	; 0xc000000
+	and r1, r2
 2400032c:	ea01 0102 	and.w	r1, r1, r2
+	ldr r2, =GPIOx_PUPDR_SET
 24000330:	f04f 6200 	mov.w	r2, #134217728	; 0x8000000
+	orr r1, r2
 24000334:	ea41 0102 	orr.w	r1, r1, r2
+	str r1, [r0, #GPIOx_PUPDR]
 24000338:	60c1      	str	r1, [r0, #12]
+
+	pop { r0, r1, r2, pc }
 2400033a:	bd07      	pop	{r0, r1, r2, pc}
 
 2400033c <green_led_on>:
+
+	.type	green_led_on %function
+	.global green_led_on
+
+green_led_on:
+	push { r0, r1, lr }
 2400033c:	b503      	push	{r0, r1, lr}
+
+	ldr r0, =GPIOJ_BASE
 2400033e:	4810      	ldr	r0, [pc, #64]	; (24000380 <loop_button+0x10>)
+	mov r1, #LED_GREEN_ON
 24000340:	f44f 2180 	mov.w	r1, #262144	; 0x40000
+	str r1, [r0, #GPIOx_BSSR]
 24000344:	6181      	str	r1, [r0, #24]
+
+	pop { r0, r1, pc }
 24000346:	bd03      	pop	{r0, r1, pc}
 
 24000348 <green_led_off>:
+
+	.type 	green_led_off %function
+	.global green_led_off
+
+green_led_off:
+	push { r0, r1, lr }
 24000348:	b503      	push	{r0, r1, lr}
+
+	ldr r0, =GPIOJ_BASE
 2400034a:	480d      	ldr	r0, [pc, #52]	; (24000380 <loop_button+0x10>)
+	mov r1, #LED_GREEN_OFF
 2400034c:	f04f 0104 	mov.w	r1, #4
+	str r1, [r0, #GPIOx_BSSR]
 24000350:	6181      	str	r1, [r0, #24]
+
+	pop { r0, r1, pc }
 24000352:	bd03      	pop	{r0, r1, pc}
 
 24000354 <red_led_on>:
+
+	.type	red_led_on %function
+	.global red_led_on
+
+red_led_on:
+	push { r0, r1, lr }
 24000354:	b503      	push	{r0, r1, lr}
+
+	ldr r0, =GPIOI_BASE
 24000356:	480b      	ldr	r0, [pc, #44]	; (24000384 <loop_button+0x14>)
+	mov r1, #LED_RED_ON
 24000358:	f04f 5100 	mov.w	r1, #536870912	; 0x20000000
+	str r1, [r0, #GPIOx_BSSR]
 2400035c:	6181      	str	r1, [r0, #24]
+
+	pop { r0, r1, pc }
 2400035e:	bd03      	pop	{r0, r1, pc}
 
 24000360 <red_led_off>:
+
+	.type	red_led_off %function
+	.global	red_led_off
+
+red_led_off:
+	push { r0, r1, lr }
 24000360:	b503      	push	{r0, r1, lr}
+
+	ldr r0, =GPIOI_BASE
 24000362:	4808      	ldr	r0, [pc, #32]	; (24000384 <loop_button+0x14>)
+	mov r1, #LED_RED_OFF
 24000364:	f44f 5100 	mov.w	r1, #8192	; 0x2000
+	str r1, [r0, #GPIOx_BSSR]
 24000368:	6181      	str	r1, [r0, #24]
+
+	pop { r0, r1, pc }
 2400036a:	bd03      	pop	{r0, r1, pc}
 
 2400036c <wait_button>:
+
+	.type	wait_button %function
+	.global	wait_button
+wait_button:
+	push { r0, r1, lr }
 2400036c:	b503      	push	{r0, r1, lr}
+
+	ldr r0, =GPIOC_BASE
 2400036e:	4806      	ldr	r0, [pc, #24]	; (24000388 <loop_button+0x18>)
 
 24000370 <loop_button>:
+loop_button:
+	ldr r1, [r0, #GPIOx_IDR]
 24000370:	6901      	ldr	r1, [r0, #16]
+	tst r1, #(1 << 13)
 24000372:	f411 5f00 	tst.w	r1, #8192	; 0x2000
+	beq loop_button
 24000376:	d0fb      	beq.n	24000370 <loop_button>
+
+	pop { r0, r1, pc }
 24000378:	bd03      	pop	{r0, r1, pc}
 2400037a:	0000      	.short	0x0000
+	ldr r0, =RCC_AHB4ENR
 2400037c:	580244e0 	.word	0x580244e0
+	ldr r0, =GPIOJ_BASE
 24000380:	58022400 	.word	0x58022400
+	ldr r0, =GPIOI_BASE
 24000384:	58022000 	.word	0x58022000
+	ldr r0, =GPIOC_BASE
 24000388:	58020800 	.word	0x58020800
 
 2400038c <main>:
+
+  		.type  main, %function
+  		.global main
+   	   	.align
+main:
+		bl init_red_led
 2400038c:	f7ff ffb2 	bl	240002f4 <init_red_led>
+		bl red_led_off
 24000390:	f7ff ffe6 	bl	24000360 <red_led_off>
+		bl init_tc0_psp
 24000394:	f000 f815 	bl	240003c2 <init_tc0_psp>
 
 24000398 <__end>:
+
+__end: 	b 	__end
 24000398:	e7fe      	b.n	24000398 <__end>
 2400039a:	bf00      	nop
 
 2400039c <init_tc0_ms>:
+
+.type	init_tc0_ms %function
+.global	init_tc0_ms
+
+init_tc0_ms:
+	push { r0, lr }
 2400039c:	b501      	push	{r0, lr}
+
+	ldr r0, =SYSTICK_RELOAD_1MS
 2400039e:	f64f 10ff 	movw	r0, #63999	; 0xf9ff
+	bl	init_tc0
 240003a2:	f000 f801 	bl	240003a8 <init_tc0>
+
+	pop { r0, pc }
 240003a6:	bd01      	pop	{r0, pc}
 
 240003a8 <init_tc0>:
+
+.type 	init_tc0 %function
+.global init_tc0
+
+init_tc0:
+	push { r0, r1, lr }
 240003a8:	b503      	push	{r0, r1, lr}
+	ldr r1, =SCS_BASE
 240003aa:	f04f 21e0 	mov.w	r1, #3758153728	; 0xe000e000
+	ldr r0, =SYSTICK_RELOAD_1MS
 240003ae:	f64f 10ff 	movw	r0, #63999	; 0xf9ff
+	str r0, [r1, #SCS_SYST_RVR]
 240003b2:	6148      	str	r0, [r1, #20]
+
+	mov r0, #0
 240003b4:	f04f 0000 	mov.w	r0, #0
+	str r0, [r0, #SCS_SYST_CVR]
 240003b8:	6180      	str	r0, [r0, #24]
+
+	mov r0, #0x05
 240003ba:	f04f 0005 	mov.w	r0, #5
+	str r0, [r1, #SCS_SYST_CSR]
 240003be:	6108      	str	r0, [r1, #16]
+
+	pop { r0, r1, pc }
 240003c0:	bd03      	pop	{r0, r1, pc}
 
 240003c2 <init_tc0_psp>:
+
+.type 	init_tc0_psp %function
+.global init_tc0_psp
+
+init_tc0_psp:
+	push { r4, r5, lr }
 240003c2:	b530      	push	{r4, r5, lr}
+	ldr r4, =SCS_BASE
 240003c4:	f04f 24e0 	mov.w	r4, #3758153728	; 0xe000e000
+	ldr r5, =SYSTICK_RELOAD_1MS
 240003c8:	f64f 15ff 	movw	r5, #63999	; 0xf9ff
+	str r5, [r4, #SCS_SYST_RVR]
 240003cc:	6165      	str	r5, [r4, #20]
+
+	mov r5, #0
 240003ce:	f04f 0500 	mov.w	r5, #0
+	str r5, [r5, #SCS_SYST_CVR]
 240003d2:	61ad      	str	r5, [r5, #24]
+
+	mov r5, #0b111
 240003d4:	f04f 0507 	mov.w	r5, #7
+	str r5, [r4, #SCS_SYST_CSR]
 240003d8:	6125      	str	r5, [r4, #16]
+
+	pop { r4, r5, pc }
 240003da:	bd30      	pop	{r4, r5, pc}
 
 240003dc <delay_tc>:
+
+.type 	delay_tc %function
+.global delay_tc
+
+delay_tc:
+	push { r1, r2, lr }
 240003dc:	b506      	push	{r1, r2, lr}
+	ldr r1, =SCS_BASE
 240003de:	f04f 21e0 	mov.w	r1, #3758153728	; 0xe000e000
 
 240003e2 <delay_loop>:
+delay_loop:
+	ldr r2, [r1, #SCS_SYST_CSR]
 240003e2:	690a      	ldr	r2, [r1, #16]
+	tst r2, #0x10000
 240003e4:	f412 3f80 	tst.w	r2, #65536	; 0x10000
+	beq delay_loop
 240003e8:	d0fb      	beq.n	240003e2 <delay_loop>
+	subs r0, #1
 240003ea:	3801      	subs	r0, #1
+	bne delay_loop
 240003ec:	d1f9      	bne.n	240003e2 <delay_loop>
+	pop { r1, r2, pc }
 240003ee:	bd06      	pop	{r1, r2, pc}
 
 240003f0 <SysTick_Handler>:
+.global 	SysTick_Handler
+.section  	.text.SysTick_Handler,"ax",%progbits
+.type  		SysTick_Handler, %function
+
+SysTick_Handler:
+	push { r4, r5, r6, lr }
 240003f0:	b570      	push	{r4, r5, r6, lr}
+
+	ldr r4, =MSECCNT
 240003f2:	4c0e      	ldr	r4, [pc, #56]	; (2400042c <RET+0x2>)
+	ldr r5, [r4]
 240003f4:	6825      	ldr	r5, [r4, #0]
+	add r5, #1
 240003f6:	f105 0501 	add.w	r5, r5, #1
+	str r5, [r4]
 240003fa:	6025      	str	r5, [r4, #0]
+
+	ldr r4, =MSECMAX
 240003fc:	4c0c      	ldr	r4, [pc, #48]	; (24000430 <RET+0x6>)
+	ldr r6, [r4]
 240003fe:	6826      	ldr	r6, [r4, #0]
+
+	cmp r5, r6
 24000400:	42b5      	cmp	r5, r6
+
+	bne RET
 24000402:	d112      	bne.n	2400042a <RET>
+
+	ldr r4, =MSECCNT
 24000404:	4c09      	ldr	r4, [pc, #36]	; (2400042c <RET+0x2>)
+	ldr r5, =0x00
 24000406:	f04f 0500 	mov.w	r5, #0
+	str r5, [r4]
 2400040a:	6025      	str	r5, [r4, #0]
+
+	ldr r4, =LED_STATUS
 2400040c:	4c09      	ldr	r4, [pc, #36]	; (24000434 <RET+0xa>)
+	ldr r5, [r4]
 2400040e:	6825      	ldr	r5, [r4, #0]
+	ldr r6, =0x01
 24000410:	f04f 0601 	mov.w	r6, #1
+	cmp r5, r6
 24000414:	42b5      	cmp	r5, r6
+
+	IT eq
 24000416:	bf08      	it	eq
+	bleq red_led_off
 24000418:	f7ff ffa2 	bleq	24000360 <red_led_off>
+
+	cmp r5, r6
 2400041c:	42b5      	cmp	r5, r6
+	IT ne
 2400041e:	bf18      	it	ne
+	blne red_led_on
 24000420:	f7ff ff98 	blne	24000354 <red_led_on>
+
+	eor r5, r6
 24000424:	ea85 0506 	eor.w	r5, r5, r6
+	str r5, [r4]
 24000428:	6025      	str	r5, [r4, #0]
 
 2400042a <RET>:
+
+RET: pop { r4, r5, r6, pc }
 2400042a:	bd70      	pop	{r4, r5, r6, pc}
+	ldr r4, =MSECCNT
 2400042c:	20000004 	.word	0x20000004
+	ldr r4, =MSECMAX
 24000430:	20000008 	.word	0x20000008
+	ldr r4, =LED_STATUS
 24000434:	2000000c 	.word	0x2000000c
 
 24000438 <Reset_Handler>:
+
+  .section  .text.Reset_Handler
+  .weak  Reset_Handler
+  .type  Reset_Handler, %function
+Reset_Handler:
+  ldr   sp, =_estack      /* set stack pointer */
 24000438:	f8df d048 	ldr.w	sp, [pc, #72]	; 24000484 <LoopFillZerobss+0x26>
+
+/* Copy the data segment initializers from flash to SRAM */
+  ldr r0, =_sdata
 2400043c:	4812      	ldr	r0, [pc, #72]	; (24000488 <LoopFillZerobss+0x2a>)
+  ldr r1, =_edata
 2400043e:	4913      	ldr	r1, [pc, #76]	; (2400048c <LoopFillZerobss+0x2e>)
+  ldr r2, =_sidata
 24000440:	4a13      	ldr	r2, [pc, #76]	; (24000490 <LoopFillZerobss+0x32>)
+  movs r3, #0
 24000442:	2300      	movs	r3, #0
+  b LoopCopyDataInit
 24000444:	e002      	b.n	2400044c <LoopCopyDataInit>
 
 24000446 <CopyDataInit>:
+
+CopyDataInit:
+  ldr r4, [r2, r3]
 24000446:	58d4      	ldr	r4, [r2, r3]
+  str r4, [r0, r3]
 24000448:	50c4      	str	r4, [r0, r3]
+  adds r3, r3, #4
 2400044a:	3304      	adds	r3, #4
 
 2400044c <LoopCopyDataInit>:
+
+LoopCopyDataInit:
+  adds r4, r0, r3
 2400044c:	18c4      	adds	r4, r0, r3
+  cmp r4, r1
 2400044e:	428c      	cmp	r4, r1
+  bcc CopyDataInit
 24000450:	d3f9      	bcc.n	24000446 <CopyDataInit>
+
+/* Zero fill the bss segment. */
+  ldr r2, =_sbss
 24000452:	4a10      	ldr	r2, [pc, #64]	; (24000494 <LoopFillZerobss+0x36>)
+  ldr r4, =_ebss
 24000454:	4c10      	ldr	r4, [pc, #64]	; (24000498 <LoopFillZerobss+0x3a>)
+  movs r3, #0
 24000456:	2300      	movs	r3, #0
+  b LoopFillZerobss
 24000458:	e001      	b.n	2400045e <LoopFillZerobss>
 
 2400045a <FillZerobss>:
+
+FillZerobss:
+  str  r3, [r2]
 2400045a:	6013      	str	r3, [r2, #0]
+  adds r2, r2, #4
 2400045c:	3204      	adds	r2, #4
 
 2400045e <LoopFillZerobss>:
+
+LoopFillZerobss:
+  cmp r2, r4
 2400045e:	42a2      	cmp	r2, r4
+  bcc FillZerobss
 24000460:	d3fb      	bcc.n	2400045a <FillZerobss>
+
+// Initialize DWT counters - added for cycle measurements
+  ldr r0, =DEMCR
 24000462:	480e      	ldr	r0, [pc, #56]	; (2400049c <LoopFillZerobss+0x3e>)
+  ldr r1, [r0]
 24000464:	6801      	ldr	r1, [r0, #0]
+  orr r1,r1,#(1<<24)  // Enabling TRCENA bit (is already on according to SFRs)
 24000466:	f041 7180 	orr.w	r1, r1, #16777216	; 0x1000000
+  str r1, [r0]
 2400046a:	6001      	str	r1, [r0, #0]
+
+  ldr r0, =DWT_CYCCNT
 2400046c:	480c      	ldr	r0, [pc, #48]	; (240004a0 <LoopFillZerobss+0x42>)
+  mov r3,#0
 2400046e:	f04f 0300 	mov.w	r3, #0
+  str r3,[r0]
 24000472:	6003      	str	r3, [r0, #0]
+
+  ldr r0, =DWT_CTRL
 24000474:	480b      	ldr	r0, [pc, #44]	; (240004a4 <LoopFillZerobss+0x46>)
+  ldr r2, [r0]
 24000476:	6802      	ldr	r2, [r0, #0]
+  orr r2,r2,#1      // Enabling CYCCNTENA bit
 24000478:	f042 0201 	orr.w	r2, r2, #1
+  str r2, [r0]
 2400047c:	6002      	str	r2, [r0, #0]
+
+/* Call the application's entry point.*/
+//eternal:  b  eternal
+  bl  main
 2400047e:	f7ff ff85 	bl	2400038c <main>
+  bx  lr
 24000482:	4770      	bx	lr
+  ldr   sp, =_estack      /* set stack pointer */
 24000484:	20020000 	.word	0x20020000
+  ldr r0, =_sdata
 24000488:	20000000 	.word	0x20000000
+  ldr r1, =_edata
 2400048c:	20000010 	.word	0x20000010
+  ldr r2, =_sidata
 24000490:	240004cc 	.word	0x240004cc
+  ldr r2, =_sbss
 24000494:	20000010 	.word	0x20000010
+  ldr r4, =_ebss
 24000498:	2000002c 	.word	0x2000002c
+  ldr r0, =DEMCR
 2400049c:	e000edfc 	.word	0xe000edfc
+  ldr r0, =DWT_CYCCNT
 240004a0:	e0001004 	.word	0xe0001004
+  ldr r0, =DWT_CTRL
 240004a4:	e0001000 	.word	0xe0001000
 
 240004a8 <ADC3_IRQHandler>:
+ * @retval None
+*/
+    .section  .text.Default_Handler,"ax",%progbits
+Default_Handler:
+Infinite_Loop:
+  b  Infinite_Loop
 240004a8:	e7fe      	b.n	240004a8 <ADC3_IRQHandler>
 	...
 

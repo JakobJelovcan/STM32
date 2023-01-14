@@ -485,18 +485,18 @@ LOAD c:/program files (x86)/st/stm32cubeide_1.11.0/stm32cubeide/plugins/com.st.s
  .debug_aranges
                 0x00000000000000a8       0x28 ./Core/Startup/startup_stm32h750xbhx.o
 
-.debug_str      0x0000000000000000       0xd7
- .debug_str     0x0000000000000000       0x5f ./Core/Src/DMA.o
- .debug_str     0x000000000000005f       0x13 ./Core/Src/GPIO.o
-                                         0x60 (size before relaxing)
- .debug_str     0x0000000000000072       0x13 ./Core/Src/Main.o
-                                         0x60 (size before relaxing)
- .debug_str     0x0000000000000085       0x16 ./Core/Src/SysTick.o
-                                         0x63 (size before relaxing)
- .debug_str     0x000000000000009b       0x14 ./Core/Src/USART.o
+.debug_str      0x0000000000000000       0xc3
+ .debug_str     0x0000000000000000       0x4b ./Core/Src/DMA.o
+ .debug_str     0x000000000000004b       0x13 ./Core/Src/GPIO.o
+                                         0x4c (size before relaxing)
+ .debug_str     0x000000000000005e       0x13 ./Core/Src/Main.o
+                                         0x4c (size before relaxing)
+ .debug_str     0x0000000000000071       0x16 ./Core/Src/SysTick.o
+                                         0x4f (size before relaxing)
+ .debug_str     0x0000000000000087       0x14 ./Core/Src/USART.o
+                                         0x4d (size before relaxing)
+ .debug_str     0x000000000000009b       0x28 ./Core/Startup/startup_stm32h750xbhx.o
                                          0x61 (size before relaxing)
- .debug_str     0x00000000000000af       0x28 ./Core/Startup/startup_stm32h750xbhx.o
-                                         0x75 (size before relaxing)
 
 .debug_ranges   0x0000000000000000       0x40
  .debug_ranges  0x0000000000000000       0x20 ./Core/Src/Main.o
