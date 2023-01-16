@@ -1,10 +1,9 @@
-	.syntax unified
-	.cpu cortex-m4
-	.fpu softvfp
-	.thumb
+.syntax unified
+.cpu cortex-m4
+.fpu softvfp
+.thumb
 
 .data
-struct:	.space 24
 .align
 .text
 
@@ -13,8 +12,8 @@ struct:	.space 24
 
 main:
 	bl init_lcd
-
 loop:
 	bl lcd_display_bar
+	bl lcd_enable_update_display_request
 	b loop
 __end: b __end

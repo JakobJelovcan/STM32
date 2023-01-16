@@ -3,21 +3,6 @@
 .fpu softvfp
 .thumb
 
-.equ RCC_BASE,			0x40021000
-.equ RCC_AHB2ENR, 		0x4C
-.equ RCC_APB1ENR1,		0x58
-
-.equ GPIOA_BASE, 		0x48000000
-.equ GPIOB_BASE,		0x48000400
-.equ GPIOC_BASE,		0x48000800
-.equ GPIOD_BASE,		0x48000C00
-.equ GPIOE_BASE,		0x48001000
-
-.equ GPIOx_MODER,		0x00
-.equ GPIOx_PUPDR,		0x0C
-.equ GPIOx_AFRL,		0x20
-.equ GPIOx_AFRH,		0x24
-
 .equ LCD_BASE, 			0x40002400
 .equ LCD_CR,			0x00
 .equ LCD_FCR,			0x04
@@ -25,49 +10,78 @@
 .equ LCD_CLR,			0x0C
 .equ LCD_RAM,			0x14
 
-
-.type	init_lcd_gpio %function
-.global	init_lcd_gpio
-init_lcd_gpio:
-	push { lr }
-
-	bl init_lcd_a
-	bl init_lcd_b
-	bl init_lcd_c
-
-	pop { pc }
-
-
+/**
+ * @brief Initialize the lcd
+ * @param None
+ * @return None
+*/
 .type	init_lcd %function
 .global	init_lcd
 init_lcd:
-	push { r4, r5, r6, r7, lr }
+	push { r4, r5, r6, lr }
 
-	//Enable lcd clock
-	ldr r4, =RCC_BASE
-	ldr r5, =(1 << 9)
-	str r5, [r4, #RCC_APB1ENR1]
-
-	//Set GPIO A,B,C to AF11
+	//Enable lcd gpio pins
 	bl init_lcd_gpio
 
-	bl lcd_off			//Turn off lcd
-	bl lcd_wait_off		//Wait for lcd to be turned off
-	bl lcd_clear_ram	//Clear ram
+	//Wait for the capacitor on LCDV to charge (2 ms)
+	ldr r0, =0x02
+	bl systick_wait_ms
+
+	//Enable lcd clock
+	bl rcc_lcd_clk_enable
+
+	//Disable lcd
+	bl lcd_disable
+
+	//Clear lcd ram
+	bl lcd_clear_ram
+
+	//Enable display update
+	bl lcd_enable_update_display_request
 
 	ldr r4, =LCD_BASE
-	ldr r5, =0x00001C00
+
+	/*
+		Prescaler: 4
+		Clock divider: 1
+		Blink mode: 0
+		Blink frequency: 0
+		Contrast control: 7
+		Dead time duration: 0
+		Pulse on duration: 0
+		Update display done interrupt enable: 0
+		Start of frame interrupt enable: 0
+		High drive enable: 0
+	*/
+	ldr r5, =0x01041C00
 	str r5, [r4, #LCD_FCR]
 
+	//Wait for FCR changes to synchronize
+	bl lcd_wait_fcr_sync
+
+	/*
+		Voltage output buffer enable: 0
+		Mux segment enable: 0
+		Bias: 2 (1/3)
+		Duty: 3 (1/4)
+		Voltage selector: 0 (internal)
+		LCD enable: 0
+	*/
 	ldr r5, =0x0000004C
 	str r5, [r4, #LCD_CR]
 
-	pop { r4, r5, r6, r7, pc }
+	bl lcd_enable
 
+	pop { r4, r5, r6, pc }
 
-.type	lcd_off %function
-.global
-lcd_off:
+/**
+ * @brief Turn the lcd off
+ * @param None
+ * @return None
+*/
+.type	lcd_disable %function
+.global lcd_disable
+lcd_disable:
 	push { r4, r5, lr }
 
 	ldr r4, =LCD_BASE
@@ -77,10 +91,14 @@ lcd_off:
 
 	pop { r4, r5, pc }
 
-
-.type	lcd_on %function
-.global
-lcd_on:
+/**
+ * @brief Turn the lcd on
+ * @param None
+ * @return None
+*/
+.type	lcd_enable %function
+.global lcd_enable
+lcd_enable:
 	push { r4, r5, lr }
 
 	ldr r4, =LCD_BASE
@@ -90,182 +108,303 @@ lcd_on:
 
 	pop { r4, r5, pc }
 
-
+/**
+ * @brief Wait for the ENS bit in the LCD_SR to be 0 indicating that the lcd is off
+ * @param None
+ * @return None
+*/
 .type	lcd_wait_off %function
 lcd_wait_off:
 	push { r4, r5, lr }
 
 	ldr r4, =LCD_BASE
-lcd_wait_off_loop:
+1:
 	ldr r5, [r4, #LCD_SR]
 	tst r5, #(1 << 0)
-	bne lcd_wait_off_loop
+	bne 1b
 
 	pop { r4, r5, pc }
 
-.type	lcd_set_contrast %function
-.global	lcd_set_contrast
-lcd_set_contrast:
+/**
+ * @brief Wait for the FCRSF bit in the LCD_SR to be 1 indicating that the LCD_FCR register has been synchronized
+ * @param None
+ * @return None
+*/
+.type	lcd_wait_fcr_sync %function
+lcd_wait_fcr_sync:
 	push { r4, r5, lr }
 
 	ldr r4, =LCD_BASE
-	ldr r5, =0x00000007
-	and r0, r5
-	lsl r0, #10
-	ldr r5, [r4, #LCD_FCR]
-	orr r5, r0
-	str r5, [r4, #LCD_FCR]
-
-	pop { r4, r5, pc }
-
-.type	lcd_display_bar %function
-.global	lcd_display_bar
-lcd_display_bar:
-	push { r4, r5, lr }
-
-	ldr r4, =LCD_BASE
-wait_udr:
+1:
 	ldr r5, [r4, #LCD_SR]
-	tst r5, #(1 << 2)
-	bne wait_udr
-
-	ldr r5, =0x00FFFFFF
-	str r5, [r4, #LCD_RAM]
-	str r5, [r4, #LCD_RAM + 8]
-	str r5, [r4, #LCD_RAM + 16]
-	str r5, [r4, #LCD_RAM + 24]
-
-	ldr r5, =(1 << 2)
-	str r5, [r4, #LCD_SR]
+	tst r5, #(1 << 5)
+	beq 1b
 
 	pop { r4, r5, pc }
 
-
-.type	init_lcd_a %function
-.global init_lcd_a
-init_lcd_a:
-	push { r4, r5, r6, lr }
-
-	ldr r4, =RCC_BASE
-	ldr r5, [r4, #RCC_AHB2ENR]
-	orr r5, #(1 << 0)
-	str r5, [r4, #RCC_AHB2ENR]
-
-	//PA1, PA2, PA3, PA6, PA7, PA8, PA9, PA10, PA15
-	ldr r4, =GPIOA_BASE
-	ldr r5, [r4, #GPIOx_MODER]
-	ldr r6, =0x3FC00F03
-	and r5, r6
-	ldr r6, =0x802AA0A8
-	orr r5, r6
-	str r5, [r4, #GPIOx_MODER]
-
-	ldr r5, [r4, #GPIOx_PUPDR]
-	ldr r6, =0x3FC00F03
-	and r5, r6
-	str r5, [r4, #GPIOx_PUPDR]
-
-	ldr r5, [r4, #GPIOx_AFRL]
-	ldr r6, =0x00FF000F
-	and r5, r6
-	ldr r6, =0xBB00BBB0
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRL]
-
-	ldr r5, [r4, #GPIOx_AFRH]
-	ldr r6, =0x0FFFF000
-	and r5, r6
-	ldr r6, =0xB0000BBB
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRH]
-
-	pop { r4, r5, r6, pc }
-
-
-.type	init_lcd_b %function
-.global	init_lcd_b
-init_lcd_b:
-	push { r4, r5, r6, lr }
-
-	ldr r4, =RCC_BASE
-	ldr r5, [r4, #RCC_AHB2ENR]
-	orr r5, #(1 << 1)
-	str r5, [r4, #RCC_AHB2ENR]
-
-	//PB0, PB1, PB3, PB4, PB5, PB7, PB8, PB9, PB10, PB11, PB12, PB13, PB14, PB15
-	ldr r4, =GPIOB_BASE
-	ldr r5, [r4, #GPIOx_MODER]
-	ldr r6, =0x00003030
-	and r5, r6
-	ldr r6, =0xAAAA8A8A
-	orr r5, r6
-	str r5, [r4, #GPIOx_MODER]
-
-	ldr r5, [r4, #GPIOx_PUPDR]
-	ldr r6, =0x00003030
-	and r5, r6
-	str r5, [r4, #GPIOx_PUPDR]
-
-	ldr r5, [r4, #GPIOx_AFRL]
-	ldr r6, =0x0F000F00
-	and r5, r6
-	ldr r6, =0xB0BBB0BB
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRL]
-
-	ldr r5, [r4, #GPIOx_AFRH]
-	ldr r6, =0x00000000
-	and r5, r6
-	ldr r6, =0xBBBBBBBB
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRH]
-
-	pop { r4, r5, r6, pc }
-
-
-.type	init_lcd_c %function
-.global init_lcd_c
-init_lcd_c:
-	push { r4, r5, r6, lr }
-
-	ldr r4, =RCC_BASE
-	ldr r5, [r4, #RCC_AHB2ENR]
-	orr r5, #(1 << 2)
-	str r5, [r4, #RCC_AHB2ENR]
-
-	//PC0, PC1, PC2, PC3, PC4, PC5
-	ldr r4, =GPIOC_BASE
-	ldr r5, [r4, #GPIOx_MODER]
-	ldr r6, =0xFFFFF000
-	and r5, r6
-	ldr r6, =0x00000AAA
-	orr r5, r6
-	str r5, [r4, #GPIOx_MODER]
-
-	ldr r5, [r4, #GPIOx_PUPDR]
-	ldr r6, =0xFFFFF000
-	and r5, r6
-	str r5, [r4, #GPIOx_PUPDR]
-
-	ldr r5, [r4, #GPIOx_AFRL]
-	ldr r6, =0xFF000000
-	and r5, r6
-	ldr r6, =0x00BBBBBB
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRL]
-
-	pop { r4, r5, r6, pc }
-
+/**
+ * @brief Clear the lcd ram
+ * @param None
+ * @return None
+*/
 .type	lcd_clear_ram %function
+.global	lcd_clear_ram
 lcd_clear_ram:
 	push { r4, r5, r6, lr }
 
 	ldr r4, =LCD_BASE + LCD_RAM
 	ldr r5, =0x00
 	ldr r6, =0x0F
-clear_ram_loop:
+1:
 	str r5, [r4], #4
-	subs r7, #1
-	bne clear_ram_loop
+	subs r6, #1
+	bne 1b
 
 	pop { r4, r5, r6, pc }
+
+/**
+ * @brief Change the contrast of the lcd
+ * @param int
+ * @return None
+*/
+.type	lcd_set_contrast %function
+.global	lcd_set_contrast
+lcd_set_contrast:
+	push { r4, r5, r6, lr }
+
+	ldr r4, =LCD_BASE
+	ldr r6, =0x00000007
+	and r0, r6
+	lsl r0, #10
+	ldr r5, [r4, #LCD_FCR]
+	ldr r6, =0xFFFFE3FF
+	and r5, r6
+	orr r5, r0
+	str r5, [r4, #LCD_FCR]
+	bl lcd_wait_fcr_sync
+
+	pop { r4, r5, r6, pc }
+
+/**
+ * @brief Change the blink mode of the lcd
+ * @param int
+ * @return None
+*/
+.type	lcd_set_blink_mode %function
+.global	lcd_set_blink_mode
+lcd_set_blink_mode:
+	push { r4, r5, r6, lr }
+
+	ldr r4, =LCD_BASE
+	ldr r6, =0x00000003
+	and r0, r6
+	lsl r0, #16
+	ldr r5, [r4, #LCD_FCR]
+	ldr r6, =0xFFFCFFFF
+	and r5, r6
+	orr r5, r0
+	str r5, [r4, #LCD_FCR]
+	bl lcd_wait_fcr_sync
+
+	pop { r4, r5, r6, pc }
+
+/**
+ * @brief Change the blink frequency of the lcd
+ * @param int
+ * @return None
+*/
+.type	lcd_set_blink_frequency %function
+.global	lcd_set_blink_frequency
+lcd_set_blink_frequency:
+	push { r4, r5, r6, lr }
+
+	ldr r4, =LCD_BASE
+	ldr r6, =0x00000007
+	and r0, r6
+	lsl r0, #13
+	ldr r5, [r4, #LCD_FCR]
+	ldr r6, =0xFFFF1FFF
+	and r5, r6
+	orr r5, r0
+	str r5, [r4, #LCD_FCR]
+	bl lcd_wait_fcr_sync
+
+	pop { r4, r5, r6, pc }
+
+/**
+ * @brief Change the blink frequency of the lcd
+ * @param int
+ * @return None
+*/
+.type	lcd_set_pulse_on_duration %function
+.global	lcd_set_pulse_on_duration
+lcd_set_pulse_on_duration:
+	push { r4, r5, r6, lr }
+
+	ldr r4, =LCD_BASE
+	ldr r6, =0x00000007
+	and r0, r6
+	lsl r0, #4
+	ldr r5, [r4, #LCD_FCR]
+	ldr r6, =0xFFFFFF8F
+	and r5, r6
+	orr r5, r0
+	str r5, [r4, #LCD_FCR]
+	bl lcd_wait_fcr_sync
+
+	pop { r4, r5, r6, pc }
+
+/**
+ * @brief Change the length of dead time between frames
+ * @param int
+ * @return None
+*/
+.type	lcd_set_dead_time_duration %function
+.global	lcd_set_dead_time_duration
+lcd_set_dead_time_duration:
+	push { r4, r5, r6, lr }
+
+	ldr r4, =LCD_BASE
+	ldr r6, =0x00000007
+	and r0, r6
+	lsl r0, #7
+	ldr r5, [r4, #LCD_FCR]
+	ldr r6, =0xFFFFFC7F
+	and r5, r6
+	orr r5, r0
+	str r5, [r4, #LCD_FCR]
+	bl lcd_wait_fcr_sync
+
+	pop { r4, r5, r6, pc }
+
+/**
+ * @brief Set high drive
+ * @param int
+ * @return None
+*/
+.type	lcd_set_high_drive %function
+.global	lcd_set_high_drive
+lcd_set_high_drive:
+	push { r4, r5, r6, lr }
+
+	ldr r4, =LCD_BASE
+	ldr r6, =0x00000001
+	and r0, r6
+	lsl r0, #0
+	ldr r5, [r4, #LCD_FCR]
+	ldr r6, =0xFFFFFFFE
+	and r5, r6
+	orr r5, r0
+	str r5, [r4, #LCD_FCR]
+	bl lcd_wait_fcr_sync
+
+	pop { r4, r5, r6, pc }
+
+/**
+ * @brief Set prescaler
+ * @param int
+ * @return None
+*/
+.type	lcd_set_prescaler %function
+.global	lcd_set_prescaler
+lcd_set_prescaler:
+	push { r4, r5, r6, lr }
+
+	ldr r4, =LCD_BASE
+	ldr r6, =0x0000000F
+	and r0, r6
+	lsl r0, #22
+	ldr r5, [r4, #LCD_FCR]
+	ldr r6, =0xFC3FFFFF
+	and r5, r6
+	orr r5, r0
+	str r5, [r4, #LCD_FCR]
+	bl lcd_wait_fcr_sync
+
+	pop { r4, r5, r6, pc }
+
+/**
+ * @brief Set clock divider
+ * @param int
+ * @return None
+*/
+.type	lcd_set_clock_divider %function
+.global	lcd_set_clock_divider
+lcd_set_clock_divider:
+	push { r4, r5, r6, lr }
+
+	ldr r4, =LCD_BASE
+	ldr r6, =0x0000000F
+	and r0, r6
+	lsl r0, #18
+	ldr r5, [r4, #LCD_FCR]
+	ldr r6, =0xFFC3FFFF
+	and r5, r6
+	orr r5, r0
+	str r5, [r4, #LCD_FCR]
+	bl lcd_wait_fcr_sync
+
+	pop { r4, r5, r6, pc }
+
+/**
+ * @brief Display a bar on the lcd
+ * @param int
+ * @return None
+*/
+.type	lcd_display_bar %function
+.global	lcd_display_bar
+lcd_display_bar:
+	push { r4, r5, lr }
+
+	bl lcd_wait_update_display_request
+
+	ldr r4, =LCD_BASE
+	ldr r5, =0xFFFFFFFF
+	str r5, [r4, #LCD_RAM]
+	str r5, [r4, #LCD_RAM + 4]
+	str r5, [r4, #LCD_RAM + 8]
+	str r5, [r4, #LCD_RAM + 12]
+	str r5, [r4, #LCD_RAM + 16]
+	str r5, [r4, #LCD_RAM + 20]
+	str r5, [r4, #LCD_RAM + 24]
+	str r5, [r4, #LCD_RAM + 28]
+	str r5, [r4, #LCD_RAM + 32]
+	str r5, [r4, #LCD_RAM + 36]
+	str r5, [r4, #LCD_RAM + 40]
+	str r5, [r4, #LCD_RAM + 44]
+
+	pop { r4, r5, pc }
+
+/**
+ * @brief Wait for update display request to finish
+ * @param None
+ * @return None
+*/
+.type	lcd_wait_update_display_request %function
+.global	lcd_wait_update_display_request
+lcd_wait_update_display_request:
+	push { r4, r5, lr }
+
+	ldr r4, =LCD_BASE
+1:
+	ldr r5, [r4, #LCD_SR]
+	tst r5, #(1 << 2)
+	bne 1b
+
+	pop { r4, r5, pc }
+
+/**
+ * @brief Request display update
+ * @param None
+ * @return None
+*/
+.type	lcd_enable_update_display_request %function
+.global	lcd_enable_update_display_request
+lcd_enable_update_display_request:
+	push { r4, r5, lr }
+
+	ldr r4, =LCD_BASE
+	ldr r5, =(1 << 2)
+	str r5, [r4, #LCD_SR]
+
+	pop { r4, r5, pc }
