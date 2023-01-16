@@ -10,6 +10,14 @@
 .equ LCD_CLR,			0x0C
 .equ LCD_RAM,			0x14
 
+
+.equ LCD_BAR_0_2_COM,	0x18 //COM3
+.equ LCD_BAR_1_3_COM,	0x10 //COM2
+.equ LCD_BAR_0_SEG,		(1 << 8)
+.equ LCD_BAR_1_SEG,		(1 << 8)
+.equ LCD_BAR_2_SEG,		(1 << 25)
+.equ LCD_BAR_3_SEG,		(1 << 25)
+
 /**
  * @brief Initialize the lcd
  * @param None
@@ -354,26 +362,42 @@ lcd_set_clock_divider:
 .type	lcd_display_bar %function
 .global	lcd_display_bar
 lcd_display_bar:
-	push { r4, r5, lr }
+	push { r4, r5, r6, lr }
 
 	bl lcd_wait_update_display_request
 
-	ldr r4, =LCD_BASE
-	ldr r5, =0xFFFFFFFF
-	str r5, [r4, #LCD_RAM]
-	str r5, [r4, #LCD_RAM + 4]
-	str r5, [r4, #LCD_RAM + 8]
-	str r5, [r4, #LCD_RAM + 12]
-	str r5, [r4, #LCD_RAM + 16]
-	str r5, [r4, #LCD_RAM + 20]
-	str r5, [r4, #LCD_RAM + 24]
-	str r5, [r4, #LCD_RAM + 28]
-	str r5, [r4, #LCD_RAM + 32]
-	str r5, [r4, #LCD_RAM + 36]
-	str r5, [r4, #LCD_RAM + 40]
-	str r5, [r4, #LCD_RAM + 44]
+	and r0, #0x0F					//Mask the first 4 bits
+	ldr r4, =LCD_BASE + LCD_RAM		//Base address for LCD_RAM
 
-	pop { r4, r5, pc }
+	//BAR 0
+	tst r0, #(1 << 0)
+	ITTT ne
+	ldrne r5, [r4, #LCD_BAR_0_2_COM]
+	orrne r5, #LCD_BAR_0_SEG
+	strne r5, [r4, #LCD_BAR_0_2_COM]
+
+	//BAR 1
+	tst r0, #(1 << 1)
+	ITTT ne
+	ldrne r5, [r4, #LCD_BAR_1_3_COM]
+	orrne r5, #LCD_BAR_1_SEG
+	strne r5, [r4, #LCD_BAR_1_3_COM]
+
+	//BAR 2
+	tst r0, #(1 << 2)
+	ITTT ne
+	ldrne r5, [r4, #LCD_BAR_0_2_COM]
+	orrne r5, #LCD_BAR_2_SEG
+	strne r5, [r4, #LCD_BAR_0_2_COM]
+
+	//BAR 3
+	tst r0, #(1 << 3)
+	ITTT ne
+	ldrne r5, [r4, #LCD_BAR_1_3_COM]
+	orrne r5, #LCD_BAR_3_SEG
+	strne r5, [r4, #LCD_BAR_1_3_COM]
+
+	pop { r4, r5, r6, pc }
 
 /**
  * @brief Wait for update display request to finish
