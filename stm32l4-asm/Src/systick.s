@@ -20,7 +20,7 @@
 init_systick:
 	push { r4, r5, lr }
 
-	ldr r5, =0x02
+	ldr r5, =(1 << 2)			//Set clock source to AHB
 	str r5, [r4, #STK_CTRL]
 
 	pop { r4, r5, pc }
@@ -146,4 +146,5 @@ systick_wait_ms:
 	subs r5, #1
 	bne 1b
 
+	bl systick_disable
 	pop { r4, r5, pc }

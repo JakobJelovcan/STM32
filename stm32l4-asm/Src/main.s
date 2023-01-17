@@ -24,7 +24,7 @@ loop:
 	bl lcd_display_bar
 	bl lcd_enable_update_display_request
 
-	ldr r0, =0x100
+	ldr r0, =1000
 	bl systick_wait_ms
 
 

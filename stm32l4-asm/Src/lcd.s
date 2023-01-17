@@ -3,20 +3,125 @@
 .fpu softvfp
 .thumb
 
-.equ LCD_BASE, 			0x40002400
-.equ LCD_CR,			0x00
-.equ LCD_FCR,			0x04
-.equ LCD_SR,			0x08
-.equ LCD_CLR,			0x0C
-.equ LCD_RAM,			0x14
+.equ LCD_BASE, 						0x40002400
+.equ LCD_CR,						0x00
+.equ LCD_FCR,						0x04
+.equ LCD_SR,						0x08
+.equ LCD_CLR,						0x0C
+.equ LCD_RAM,						0x14
 
+.equ LCD_SEG_0,						(1 << 4)
+.equ LCD_SEG_1,						(1 << 23)
+.equ LCD_SEG_2,						(1 << 6)
+.equ LCD_SEG_3,						(1 << 13)
+.equ LCD_SEG_4,						(1 << 15)
+.equ LCD_SEG_5,						(1 << 29)
+.equ LCD_SEG_6,						(1 << 31)
+.equ LCD_SEG_7,						(1 << 33)
+.equ LCD_SEG_8,						(1 << 35)
+.equ LCD_SEG_9,						(1 << 25)
+.equ LCD_SEG_10,					(1 << 17)
+.equ LCD_SEG_11,					(1 << 8)
+.equ LCD_SEG_12,					(1 << 9)
+.equ LCD_SEG_13,					(1 << 26)
+.equ LCD_SEG_14,					(1 << 24)
+.equ LCD_SEG_15,					(1 << 34)
+.equ LCD_SEG_16,					(1 << 32)
+.equ LCD_SEG_17,					(1 << 30)
+.equ LCD_SEG_18,					(1 << 28)
+.equ LCD_SEG_19,					(1 << 14)
+.equ LCD_SEG_20,					(1 << 12)
+.equ LCD_SEG_21,					(1 << 5)
+.equ LCD_SEG_22,					(1 << 22)
+.equ LCD_SEG_23,					(1 << 3)
 
-.equ LCD_BAR_0_2_COM,	0x18 //COM3
-.equ LCD_BAR_1_3_COM,	0x10 //COM2
-.equ LCD_BAR_0_SEG,		(1 << 8)
-.equ LCD_BAR_1_SEG,		(1 << 8)
-.equ LCD_BAR_2_SEG,		(1 << 25)
-.equ LCD_BAR_3_SEG,		(1 << 25)
+.equ LCD_COM_0,						0x00
+.equ LCD_COM_0_1,					0x04
+.equ LCD_COM_1,						0x08
+.equ LCD_COM_1_1,					0x0C
+.equ LCD_COM_2,						0x10
+.equ LCD_COM_2_1,					0x14
+.equ LCD_COM_3,						0x18
+.equ LCD_COM_3_1,					0x1C
+
+.equ LCD_DIGIT_1_COM_0,				LCD_COM_0
+.equ LCD_DIGIT_1_COM_0_SEG_MASK,	~(LCD_SEG_0 | LCD_SEG_1 | LCD_SEG_22 | LCD_SEG_23)
+.equ LCD_DIGIT_1_COM_1,				LCD_COM_1
+.equ LCD_DIGIT_1_COM_1_SEG_MASK,	~(LCD_SEG_0 | LCD_SEG_1 | LCD_SEG_22 | LCD_SEG_23)
+.equ LCD_DIGIT_1_COM_2,				LCD_COM_2
+.equ LCD_DIGIT_1_COM_2_SEG_MASK,	~(LCD_SEG_0 | LCD_SEG_1 | LCD_SEG_22 | LCD_SEG_23)
+.equ LCD_DIGIT_1_COM_3,				LCD_COM_3
+.equ LCD_DIGIT_1_COM_3_SEG_MASK,	~(LCD_SEG_0 | LCD_SEG_1 | LCD_SEG_22 | LCD_SEG_23)
+
+.equ LCD_DIGIT_2_COM_0,				LCD_COM_0
+.equ LCD_DIGIT_2_COM_0_SEG_MASK,	~(LCD_SEG_2 | LCD_SEG_3 | LCD_SEG_20 | LCD_SEG_21)
+.equ LCD_DIGIT_2_COM_1,				LCD_COM_1
+.equ LCD_DIGIT_2_COM_1_SEG_MASK,	~(LCD_SEG_2 | LCD_SEG_3 | LCD_SEG_20 | LCD_SEG_21)
+.equ LCD_DIGIT_2_COM_2,				LCD_COM_2
+.equ LCD_DIGIT_2_COM_2_SEG_MASK,	~(LCD_SEG_2 | LCD_SEG_3 | LCD_SEG_20 | LCD_SEG_21)
+.equ LCD_DIGIT_2_COM_3,				LCD_COM_3
+.equ LCD_DIGIT_2_COM_4_SEG_MASK,	~(LCD_SEG_2 | LCD_SEG_3 | LCD_SEG_20 | LCD_SEG_21)
+
+.equ LCD_DIGIT_3_COM_0,				LCD_COM_0
+.equ LCD_DIGIT_3_COM_0_SEG_MASK,	~(LCD_SEG_4 | LCD_SEG_5 | LCD_SEG_18 | LCD_SEG_19)
+.equ LCD_DIGIT_3_COM_1,				LCD_COM_1
+.equ LCD_DIGIT_3_COM_1_SEG_MASK,	~(LCD_SEG_4 | LCD_SEG_5 | LCD_SEG_18 | LCD_SEG_19)
+.equ LCD_DIGIT_3_COM_2,				LCD_COM_2
+.equ LCD_DIGIT_3_COM_2_SEG_MASK,	~(LCD_SEG_4 | LCD_SEG_5 | LCD_SEG_18 | LCD_SEG_19)
+.equ LCD_DIGIT_3_COM_3,				LCD_COM_3
+.equ LCD_DIGIT_3_COM_3_SEG_MASK,	~(LCD_SEG_4 | LCD_SEG_5 | LCD_SEG_18 | LCD_SEG_19)
+
+.equ LCD_DIGIT_4_COM_0,				LCD_COM_0
+.equ LCD_DIGIT_4_COM_0_MASK,		~(LCD_SEG_6 | LCD_SEG_17)
+.equ LCD_DIGIT_4_COM_0_1,			LCD_COM_0_1
+.equ LCD_DIGIT_4_COM_0_1_MASK,		~(LCD_SEG_7 | LCD_SEG_16)
+.equ LCD_DIGIT_4_COM_1,				LCD_COM_1
+.equ LCD_DIGIT_4_COM_1_MASK,		~(LCD_SEG_6 | LCD_SEG_17)
+.equ LCD_DIGIT_4_COM_1_1,			LCD_COM_1_1
+.equ LCD_DIGIT_4_COM_1_1_MASK,		~(LCD_SEG_7 | LCD_SEG_16)
+.equ LCD_DIGIT_4_COM_2,				LCD_COM_2
+.equ LCD_DIGIT_4_COM_2_MASK,		~(LCD_SEG_6 | LCD_SEG_17)
+.equ LCD_DIGIT_4_COM_2_1,			LCD_COM_2_1
+.equ LCD_DIGIT_4_COM_2_1_MASK,		~(LCD_SEG_7 | LCD_SEG_16)
+.equ LCD_DIGIT_4_COM_3,				LCD_COM_3
+.equ LCD_DIGIT_4_COM_3_MASK,		~(LCD_SEG_6 | LCD_SEG_17)
+.equ LCD_DIGIT_4_COM_3_1,			LCD_COM_3_1
+.equ LCD_DIGIT_4_COM_3_1_MASK,		~(LCD_SEG_7 | LCD_SEG_16)
+
+.equ LCD_DIGIT_5_COM_0,				LCD_COM_0
+.equ LCD_DIGIT_5_COM_0_MASK,		~(LCD_SEG_9 | LCD_SEG_14)
+.equ LCD_DIGIT_5_COM_0_1,			LCD_COM_0_1
+.equ LCD_DIGIT_5_COM_0_1_MASK,		~(LCD_SEG_8 | LCD_SEG_15)
+.equ LCD_DIGIT_5_COM_1,				LCD_COM_1
+.equ LCD_DIGIT_5_COM_1_MASK,		~(LCD_SEG_9 | LCD_SEG_14)
+.equ LCD_DIGIT_5_COM_1_1,			LCD_COM_1_1
+.equ LCD_DIGIT_5_COM_1_1_MASK,		~(LCD_SEG_8 | LCD_SEG_15)
+.equ LCD_DIGIT_5_COM_2,				LCD_COM_2
+.equ LCD_DIGIT_5_COM_2_MASK,		~(LCD_SEG_9 | LCD_SEG_14)
+.equ LCD_DIGIT_5_COM_2_1,			LCD_COM_2_1
+.equ LCD_DIGIT_5_COM_2_1_MASK,		~(LCD_SEG_8 | LCD_SEG_15)
+.equ LCD_DIGIT_5_COM_3,				LCD_COM_3
+.equ LCD_DIGIT_5_COM_3_MASK,		~(LCD_SEG_9 | LCD_SEG_14)
+.equ LCD_DIGIT_5_COM_3_1,			LCD_COM_3_1
+.equ LCD_DIGIT_5_COM_3_1_MASK,		~(LCD_SEG_8 | LCD_SEG_15)
+
+.equ LCD_DIGIT_6_COM_0,				LCD_COM_0
+.equ LCD_DIGIT_6_COM_0_SEG_MASK,	~(LCD_SEG_10 | LCD_SEG_11 | LCD_SEG_12 | LCD_SEG_13)
+.equ LCD_DIGIT_6_COM_1,				LCD_COM_1
+.equ LCD_DIGIT_6_COM_1_SEG_MASK,	~(LCD_SEG_10 | LCD_SEG_11 | LCD_SEG_12 | LCD_SEG_13)
+.equ LCD_DIGIT_6_COM_2,				LCD_COM_2
+.equ LCD_DIGIT_6_COM_2_SEG_MASK,	~(LCD_SEG_10 | LCD_SEG_11 | LCD_SEG_12 | LCD_SEG_13)
+.equ LCD_DIGIT_6_COM_3,				LCD_COM_3
+.equ LCD_DIGIT_6_COM_3_SEG_MASK,	~(LCD_SEG_10 | LCD_SEG_11 | LCD_SEG_12 | LCD_SEG_13)
+
+.equ LCD_BAR_0_2_COM,				LCD_COM_3
+.equ LCD_BAR_1_3_COM,				LCD_COM_2
+.equ LCD_BAR_0_SEG,					LCD_SEG_11
+.equ LCD_BAR_1_SEG,					LCD_SEG_11
+.equ LCD_BAR_2_SEG,					LCD_SEG_9
+.equ LCD_BAR_3_SEG,					LCD_SEG_9
+.equ LCD_BAR_0_2_SEG_MASK,			~(LCD_BAR_0_SEG | LCD_BAR_1_SEG)
+.equ LCD_BAR_1_3_SEG_MASK,			~(LCD_BAR_1_SEG | LCD_BAR_3_SEG)
 
 /**
  * @brief Initialize the lcd
@@ -162,7 +267,7 @@ lcd_clear_ram:
 
 	ldr r4, =LCD_BASE + LCD_RAM
 	ldr r5, =0x00
-	ldr r6, =0x0F
+	ldr r6, =0x08
 1:
 	str r5, [r4], #4
 	subs r6, #1
