@@ -9,6 +9,7 @@
 .equ	STK_VAL,	0x08
 .equ	STK_CALIB,	0x0C
 
+.text
 
 /**
  * @brief Initialize SysTick

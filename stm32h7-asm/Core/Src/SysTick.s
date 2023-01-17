@@ -11,7 +11,6 @@
 .equ SYSTICK_RELOAD_1MS,	0x0000F9FF
 
 .text
-.align
 
 .type	init_tc0_ms %function
 .global	init_tc0_ms

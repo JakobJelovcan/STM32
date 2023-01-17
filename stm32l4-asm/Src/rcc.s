@@ -8,6 +8,8 @@
 .equ RCC_APB1ENR1,		0x58
 .equ RCC_BDCR,			0x90
 
+.text
+
 .type	rcc_gpioa_clk_enable %function
 .global	rcc_gpioa_clk_enable
 rcc_gpioa_clk_enable:

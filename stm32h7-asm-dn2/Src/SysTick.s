@@ -10,7 +10,6 @@
 .equ RCC_BASE, 0x58024400
 
 .text
-.align
 
 .type	init_tc0_ms %function
 .global	init_tc0_ms

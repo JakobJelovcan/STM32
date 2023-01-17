@@ -26,12 +26,14 @@
 	.equ USART_ISR, 0x1C
 	.equ USART_RDR, 0x24
 	.equ USART_TDR, 0x28
+.text
 
-	.type 	init_usart3 %function
-	.global init_usart3
+.type 	init_usart3 %function
+.global init_usart3
 
 init_usart3:
 	push { r0, r1, r2, lr }
+
 	ldr r0, =RCC_BASE
 	ldr r1, [r0, #RCC_APB1LENR]
 	orr r1, r1, #(1 << 18)
@@ -70,55 +72,63 @@ init_usart3:
 
 	pop { r0, r1, r2, pc }
 
-	.type	receive_char_usart3 %function
-	.global	receive_char_usart3
+.type	receive_char_usart3 %function
+.global	receive_char_usart3
 
 receive_char_usart3:
 	push { r1, r2, lr }
+
 	ldr r1, =USART3_BASE
 receive_loop:
 	ldr r2, [r1, #USART_ISR]
 	tst r2, #(1 << 5)
 	beq receive_loop
 	ldr r0, [r1, #USART_RDR]
+
 	pop { r1, r2, pc }
 
 
-	.type	receive_string_usart3 %function
-	.global receive_string_usart3
+.type	receive_string_usart3 %function
+.global receive_string_usart3
 
 receive_string_usart3:
 	push { r1, lr }
+
 	mov r1, r0
 receive_string_loop:
 	bl receive_char_usart3
 	str r0, [r1], #1
 	cmp r0, #0
 	bne receive_string_loop
+
 	pop { r1, pc }
 
-	.type	send_char_usart3 %function
-	.global	send_char_usart3
+.type	send_char_usart3 %function
+.global	send_char_usart3
 
 send_char_usart3:
 	push { r1, r2, lr }
+
 	ldr r1, =USART3_BASE
 send_loop:
 	ldr r2, [r1, #USART_ISR]
 	tst r2, #(1 << 7)
 	beq send_loop
 	str r0, [r1, #USART_TDR]
+
 	pop { r1, r2, pc }
 
-	.type	send_string_usart3 %function
-	.global send_string_usart3
+.type	send_string_usart3 %function
+.global send_string_usart3
 
 send_string_usart3:
 	push { r1, lr }
+
 	mov r1, r0
 send_string_loop:
 	ldr r0, [r1], #1
 	bl send_char_usart3
 	cmp r0, #0
 	bne send_string_loop
+
 	pop { r1, pc }

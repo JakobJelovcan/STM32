@@ -24,6 +24,8 @@
 .equ	GPIOx_AFRH,		0x24
 .equ	GPIOx_BRR,		0x28
 
+.text
+
 /**
  * @brief Initialize the GPIO pins required by the lcd
  * @param None

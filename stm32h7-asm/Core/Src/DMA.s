@@ -38,9 +38,10 @@
 	.equ DMA_SxPAR_RX,			0x18 + 0x18 * DMA_USART3_RX_STREAM
 	.equ DMA_SxM0AR_RX,			0x1C + 0x18 * DMA_USART3_RX_STREAM
 
+.text
 
-	.type	init_dma %function
-	.global	init_dma
+.type	init_dma %function
+.global	init_dma
 
 init_dma:
 	push { r4, r5, lr }
@@ -113,8 +114,8 @@ wait1_EN0:
 	pop { r4, r5, pc }
 
 
-	.type	rcv_dma %function
-	.global	rcv_dma
+.type	rcv_dma %function
+.global	rcv_dma
 
 rcv_dma:
 	push { r4, r5, lr }
@@ -153,8 +154,8 @@ wait_rcv:
 
 	pop { r4, r5, pc }
 
-	.type	snd_dma %function
-	.global	snd_dma
+.type	snd_dma %function
+.global	snd_dma
 
 snd_dma:
 	push { r4, r5, lr }

@@ -19,11 +19,11 @@
 	.equ	GPIOx_PUPDR_SET,	0x08000000
 
 
-	.text
-	.align
+.text
+.align
 
-	.type 	init_green_led %function
-	.global init_green_led
+.type 	init_green_led %function
+.global init_green_led
 
 init_green_led:
 	push { r0, r1, lr }
@@ -40,8 +40,8 @@ init_green_led:
 
 	pop { r0, r1, pc }
 
-	.type	init_red_led %function
-	.global	init_red_led
+.type	init_red_led %function
+.global	init_red_led
 
 init_red_led:
 	push { r0, r1, lr }
@@ -58,8 +58,8 @@ init_red_led:
 
 	pop { r0, r1, pc }
 
-	.type	init_button %function
-	.global	init_button
+.type	init_button %function
+.global	init_button
 
 init_button:
 	push { r0, r1, r2, lr }
@@ -82,8 +82,8 @@ init_button:
 
 	pop { r0, r1, r2, pc }
 
-	.type	green_led_on %function
-	.global green_led_on
+.type	green_led_on %function
+.global green_led_on
 
 green_led_on:
 	push { r0, r1, lr }
@@ -94,8 +94,8 @@ green_led_on:
 
 	pop { r0, r1, pc }
 
-	.type 	green_led_off %function
-	.global green_led_off
+.type 	green_led_off %function
+.global green_led_off
 
 green_led_off:
 	push { r0, r1, lr }
@@ -106,8 +106,8 @@ green_led_off:
 
 	pop { r0, r1, pc }
 
-	.type	red_led_on %function
-	.global red_led_on
+.type	red_led_on %function
+.global red_led_on
 
 red_led_on:
 	push { r0, r1, lr }
@@ -118,8 +118,8 @@ red_led_on:
 
 	pop { r0, r1, pc }
 
-	.type	red_led_off %function
-	.global	red_led_off
+.type	red_led_off %function
+.global	red_led_off
 
 red_led_off:
 	push { r0, r1, lr }
@@ -130,8 +130,8 @@ red_led_off:
 
 	pop { r0, r1, pc }
 
-	.type	wait_button %function
-	.global	wait_button
+.type	wait_button %function
+.global	wait_button
 wait_button:
 	push { r0, r1, lr }
 

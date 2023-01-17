@@ -19,7 +19,6 @@
 .equ	GPIOx_PUPDR_SET,	0x08000000
 
 .text
-.align
 
 .type 	init_green_led %function
 .global init_green_led
