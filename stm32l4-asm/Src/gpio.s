@@ -3,26 +3,26 @@
 .fpu softvfp
 .thumb
 
-.equ	GPIOA_BASE,	0x48000000
-.equ	GPIOB_BASE,	0x48000400
-.equ	GPIOC_BASE,	0x48000800
-.equ	GPIOD_BASE,	0x48000C00
-.equ	GPIOE_BASE, 0x48001000
-.equ	GPIOF_BASE,	0x48001400
-.equ	GPIOG_BASE, 0x48001800
-.equ	GPIOH_BASE, 0x48001C00
+.equ    GPIOA_BASE,     0x48000000
+.equ    GPIOB_BASE,     0x48000400
+.equ    GPIOC_BASE,     0x48000800
+.equ    GPIOD_BASE,     0x48000C00
+.equ    GPIOE_BASE,     0x48001000
+.equ    GPIOF_BASE,     0x48001400
+.equ    GPIOG_BASE,     0x48001800
+.equ    GPIOH_BASE,     0x48001C00
 
-.equ	GPIOx_MODER, 	0x00
-.equ	GPIOx_OTYPER,	0x04
-.equ	GPIOx_OSPEEDR,  0x08
-.equ	GPIOx_PUPDR,	0x0C
-.equ	GPIOx_IDR,		0x10
-.equ	GPIOx_ODR,		0x14
-.equ	GPIOx_BSSR,		0x18
-.equ	GPIOx_LCKR,		0x1C
-.equ	GPIOx_AFRL,		0x20
-.equ	GPIOx_AFRH,		0x24
-.equ	GPIOx_BRR,		0x28
+.equ    GPIOx_MODER,    0x00
+.equ    GPIOx_OTYPER,   0x04
+.equ    GPIOx_OSPEEDR,  0x08
+.equ    GPIOx_PUPDR,    0x0C
+.equ    GPIOx_IDR,      0x10
+.equ    GPIOx_ODR,      0x14
+.equ    GPIOx_BSSR,     0x18
+.equ    GPIOx_LCKR,     0x1C
+.equ    GPIOx_AFRL,     0x20
+.equ    GPIOx_AFRH,     0x24
+.equ    GPIOx_BRR,      0x28
 
 .text
 
