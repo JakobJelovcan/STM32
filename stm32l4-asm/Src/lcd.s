@@ -181,49 +181,10 @@
 .equ GPIOD_PINS,                    (GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | \
                                     GPIO_PIN_14 | GPIO_PIN_15)
 
-/**
-================================================================================
-                              GLASS LCD MAPPING
-================================================================================
-LCD allows to display informations on six 14-segment digits and 4 bars:
+.equ LCD_DOT,                       0x0002
+.equ LCD_DOUBLE_DOT,                0x0020
+.equ LCD_SPACE,                     0x0000
 
-  1       2       3       4       5       6
------   -----   -----   -----   -----   -----
-|\|/| o |\|/| o |\|/| o |\|/| o |\|/|   |\|/|   BAR3
--- --   -- --   -- --   -- --   -- --   -- --   BAR2
-|/|\| o |/|\| o |/|\| o |/|\| o |/|\|   |/|\|   BAR1
------ * ----- * ----- * ----- * -----   -----   BAR0
-
-LCD segment mapping:
---------------------
-  -----A-----        _
-  |\   |   /|   COL |_|
-  F H  J  K B
-  |  \ | /  |        _
-  --G-- --M--   COL |_|
-  |  / | \  |
-  E Q  P  N C
-  |/   |   \|        _
-  -----D-----   DP  |_|
-
- An LCD character coding is based on the following matrix:
-COM           0   1   2     3
-SEG(n)      { E , D , P ,   N   }
-SEG(n+1)    { M , C , COL , DP  }
-SEG(23-n-1) { B , A , K ,   J   }
-SEG(23-n)   { G , F , Q ,   H   }
-with n positive odd number.
-
- The character 'A' for example is:
-  -------------------------------
-LSB   { 1 , 0 , 0 , 0   }
-      { 1 , 1 , 0 , 0   }
-      { 1 , 1 , 0 , 0   }
-MSB   { 1 , 1 , 0 , 0   }
-      -------------------
-  'A' =  F    E   0   0 hexa
-
-*/
 .data
 .type	capital_letters, %object
 capital_letters:    .hword 0xFE00, 0x6714, 0x1D00, 0x4714, 0x9D00, 0x9C00, 0x3F00, 0xFA00, 0x0014, \
@@ -606,6 +567,41 @@ lcd_set_clock_divider:
 
 	pop { r4, r5, r6, pc }
 
+
+/**
+ * @brief Wait for update display request to finish
+ * @param None
+ * @return None
+*/
+.type	lcd_wait_update_display_request, %function
+.global	lcd_wait_update_display_request
+lcd_wait_update_display_request:
+	push { r4, r5, lr }
+
+	ldr r4, =LCD_BASE
+1:
+	ldr r5, [r4, #LCD_SR]
+	tst r5, #(1 << 2)
+	bne 1b
+
+	pop { r4, r5, pc }
+
+/**
+ * @brief Request display update
+ * @param None
+ * @return None
+*/
+.type	lcd_enable_update_display_request, %function
+.global	lcd_enable_update_display_request
+lcd_enable_update_display_request:
+	push { r4, r5, lr }
+
+	ldr r4, =LCD_BASE
+	ldr r5, =(1 << 2)
+	str r5, [r4, #LCD_SR]
+
+	pop { r4, r5, pc }
+
 /**
  * @brief Display a bar on the lcd
  * @param Bars
@@ -705,9 +701,46 @@ lcd_clear_bar:
     pop { r4, r5, r6, pc }
 
 /**
- * @brief Display character on the lcd
+ * @brief Display a string on the lcd
+ * @param Address
+ * @return None
+*/
+.type   lcd_display_string, %function
+.global lcd_display_string
+lcd_display_string:
+    push { r4, r5, lr }
+
+    bl lcd_wait_update_display_request
+
+    mov r4, r0
+    mov r3, #0          //Double dot
+    mov r2, #0          //Dot
+    mov r5, #0          //Position
+1:
+    ldrb r1, [r4], #1   //Load next character
+    add r5, #1          //Increment position
+    mov r0, r5
+
+    cmp r5, #7
+    beq 2f              //No more space on the display
+    cmp r1, #0
+    beq 2f              //End of string
+
+    bl lcd_write_char   //Write character to lcd ram
+    b 1b
+2:
+
+    bl lcd_enable_update_display_request
+
+    pop { r4, r5, pc }
+
+
+/**
+ * @brief Display a character on the lcd
  * @param Position
  * @param Character
+ * @param Dot
+ * @param Double dot
  * @return None
 */
 .type   lcd_display_char, %function
@@ -715,51 +748,66 @@ lcd_clear_bar:
 lcd_display_char:
     push { lr }
 
+    bl lcd_wait_update_display_request
     bl lcd_write_char
     bl lcd_enable_update_display_request
 
     pop { pc }
 
 /**
- * @brief Wait for update display request to finish
- * @param None
+ * @brief Converts the character from ASCII to encoding for display
+ * @param Character
+ * @param Dot
+ * @param Double dot
  * @return None
 */
-.type	lcd_wait_update_display_request, %function
-.global	lcd_wait_update_display_request
-lcd_wait_update_display_request:
-	push { r4, r5, lr }
+.type   convert_char, %function
+.local  convert_char
+convert_char:
+    push { r4, r5, lr }
 
-	ldr r4, =LCD_BASE
+    cmp r0, #32     //Space
+    ITT eq
+    ldreq r0, =LCD_SPACE
+    beq 2f
+
+    mov r5, r0
+    bl is_alpha
+    cmp r0, #1
+    bne 1f          //Character is not alpha
+    mov r0, r5
+    bl to_upper
+    sub r0, #0x41
+    ldr r4, =capital_letters
+    ldrh r0, [r4, r0, lsl #1]
+    b 2f
+
 1:
-	ldr r5, [r4, #LCD_SR]
-	tst r5, #(1 << 2)
-	bne 1b
+    mov r0, r5
+    bl is_digit
+    cmp r0, #1
+    bne 2f          //Character is neither alpha nor digit
+    sub r0, r5, #0x30
+    ldr r4, =numbers
+    ldrh r0, [r4, r0, lsl #1]
+2:
+    cmp r1, #1
+    IT eq
+    orreq r0, #LCD_DOT
 
-	pop { r4, r5, pc }
+    cmp r2, #1
+    IT eq
+    orreq r0, #LCD_DOUBLE_DOT
 
-/**
- * @brief Request display update
- * @param None
- * @return None
-*/
-.type	lcd_enable_update_display_request, %function
-.global	lcd_enable_update_display_request
-lcd_enable_update_display_request:
-	push { r4, r5, lr }
-
-	ldr r4, =LCD_BASE
-	ldr r5, =(1 << 2)
-	str r5, [r4, #LCD_SR]
-
-	pop { r4, r5, pc }
-
+    pop { r4, r5, pc }
 
 
 /**
  * @brief Write character to the LCD ram
  * @param Position
  * @param Character
+ * @param Dot
+ * @param Double dot
  * @return None
 */
 .type   lcd_write_char, %function
@@ -767,8 +815,13 @@ lcd_enable_update_display_request:
 lcd_write_char:
     push { r4, r5, r6, r7, lr }
 
-    mov r6, r0
-    mov r7, r1
+    mov r6, r0      //Store position
+    mov r0, r1      //Move character to r0
+    mov r1, r2      //Move dot to r1
+    mov r2, r3      //Move double dot to r2
+    bl convert_char
+    mov r7, r0
+/*    mov r7, r1
 
     mov r0, r7
     bl is_alpha
@@ -789,7 +842,7 @@ lcd_write_char:
     sub r0, r7, #0x30
     ldr r4, =numbers
     ldrh r7, [r4, r0, lsl #1]
-
+*/
 1:
     ldr r4, =LCD_BASE + LCD_RAM
 
