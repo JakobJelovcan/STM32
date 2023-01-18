@@ -27,216 +27,116 @@
 .text
 
 /**
- * @brief Initialize the GPIO pins required by the lcd
- * @param None
+ * @brief Initialize GPIO pins
+ * @param GPIO base address
+ * @param Pins
+ * @param Mode
+ * @param Pullup/down
+ * @param Output speed
+ * @param Alternate function
  * @return None
 */
-.type	init_lcd_gpio %function
-.global	init_lcd_gpio
-init_lcd_gpio:
-	push { lr }
+.type   init_gpio, %function
+.global init_gpio
+init_gpio:
+    push { r4, r5, r6, r7, r8, r9, lr }
 
-	bl rcc_gpioa_clk_enable
-	bl rcc_gpiob_clk_enable
-	bl rcc_gpioc_clk_enable
-	bl rcc_gpiod_clk_enable
+    ldr r4, [sp, #28]  //On stack
+    ldr r5, [sp, #32]  //On stack
 
-	bl init_lcd_gpioa
-	bl init_lcd_gpiob
-	bl init_lcd_gpioc
-	bl init_lcd_gpiod
+    and r2, #0b0011     //Mask mode 2b
+    and r3, #0b0011     //Mask pull 2b
+    and r4, #0b0011     //Mask speed 2b
+    and r5, #0b1111     //Mask alternate 4b
 
-	pop { pc }
+    //r0: GPIOx_BASE
+    //r1: pins
+    //r2: mode
+    //r3: pull
+    //r4: speed
+    //r5: alternate
+    //r6: position
+    //r7: temp
 
-/**
- * @brief Initialize the GPIOA pins required by the lcd
- * @param None
- * @return None
-*/
-.type	init_lcd_gpioa %function
-init_lcd_gpioa:
-	push { r4, r5, r6, lr }
+    //Loop and set every selected pin
+1:
+    tst r1, #(1 << 0)
+    beq 3f                  //The pin is not selected
 
-	ldr r4, =GPIOA_BASE
-	ldr r5, [r4, #GPIOx_MODER]
-	ldr r6, =0x3FC00FFF
-	and r5, r6
-	ldr r6, =0x802AA000
-	orr r5, r6
-	str r5, [r4, #GPIOx_MODER]
+    eors r7, r2, r2, lsr #1
+    beq 2f                  //Mode is not output or alternate
 
-	ldr r5, [r4, #GPIOx_OSPEEDR]
-	ldr r6, =0x3FC00FFF
-	and r5, r6
-	ldr r6, =0xC03FF000
-	orr r5, r6
-	str r5, [r4, #GPIOx_OSPEEDR]
+    //Set output speed
+    ldr r7, =0b11
+    ldr r9, [r0, #GPIOx_OSPEEDR]
+    lsl r8, r6, #1          //Position * 2
+    lsl r7, r8              //Mask for the selected pin
+    bic r9, r7
+    lsl r7, r4, r8          //Shift mode to the correct position
+    orr r9, r7
+    str r9, [r0, #GPIOx_OSPEEDR]
 
-	ldr r5, [r4, #GPIOx_OTYPER]
-	ldr r6, =0xFFFF783F
-	and r5, r6
-	str r5, [r4, #GPIOx_OTYPER]
+    //Set output type
+    ldr r7, =0b01
+    ldr r9, [r0, #GPIOx_OTYPER]
+    lsl r7, r6
+    bic r9, r7
+    and r7, r2, #0b01
+    lsl r7, r6
+    orr r9, r7
+    str r9, [r0, #GPIOx_OTYPER]
 
-	ldr r5, [r4, #GPIOx_PUPDR]
-	ldr r6, =0x3FC00FFF
-	and r5, r6
-	str r5, [r4, #GPIOx_PUPDR]
+2:
+    cmp r2, #0b11
+    beq 2f                  //Mode is analog
 
-	ldr r5, [r4, #GPIOx_AFRL]
-	ldr r6, =0x00FFFFFF
-	and r5, r6
-	ldr r6, =0xBB000000
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRL]
+    //Set pullup, pulldown
+    ldr r7, =0b11
+    ldr r9, [r0, #GPIOx_PUPDR]
+    lsl r8, r6, #1          //Position * 2
+    lsl r7, r8
+    bic r9, r7
+    lsl r7, r3, r8
+    orr r9, r7
+    str r9, [r0, #GPIOx_PUPDR]
 
-	ldr r5, [r4, #GPIOx_AFRH]
-	ldr r6, =0x0FFFF000
-	and r5, r6
-	ldr r6, =0xB0000BBB
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRH]
+2:
+    cmp r2, #0b10
+    bne 2f                  //Mode is not alternate
 
-	pop { r4, r5, r6, pc }
+    //Set alternate function
+    ldr r7, =0b1111
+    mov r8, r6
+    cmp r6, #0x08
+    ITEE lo
+    ldrlo r9, [r0, #GPIOx_AFRL]
+    ldrhs r9, [r0, #GPIOx_AFRH]
+    subhs r8, #0x08
+    lsl r8, #2              //Position * 4
+    lsl r7, r8
+    bic r9, r7
+    lsl r7, r5, r8
+    orr r9, r7
 
-/**
- * @brief Initialize the GPIOB pins required by the lcd
- * @param None
- * @return None
-*/
-.type	init_lcd_gpiob %function
-init_lcd_gpiob:
-	push { r4, r5, r6, lr }
+    cmp r6, #0x08
+    ITE lo
+    strlo r9, [r0, #GPIOx_AFRL]
+    strhs r9, [r0, #GPIOx_AFRH]
 
-	ldr r4, =GPIOB_BASE
-	ldr r5, [r4, #GPIOx_MODER]
-	ldr r6, =0x00F3F0F0
-	and r5, r6
-	ldr r6, =0xAA080A0A
-	orr r5, r6
-	str r5, [r4, #GPIOx_MODER]
+2:
+    //Set mode
+    ldr r7, =0b11
+    ldr r9, [r0, #GPIOx_MODER]
+    lsl r8, r6, #1          //Position * 2
+    lsl r7, r8
+    bic r9, r7
+    lsl r7, r2, r8
+    orr r9, r7
+    str r9, [r0, #GPIOx_MODER]
 
-	ldr r5, [r4, #GPIOx_OSPEEDR]
-	ldr r6, =0x00F3F0F0
-	and r5, r6
-	ldr r6, =0xFF0C0F0F
-	orr r5, r6
-	str r5, [r4, #GPIOx_OSPEEDR]
+3:
+    add r6, #1
+    lsrs r1, #1
+    bne 1b
 
-	ldr r5, [r4, #GPIOx_OTYPER]
-	ldr r6, =0xFFFF0DCC
-	and r5, r6
-	str r5, [r4, #GPIOx_OTYPER]
-
-	ldr r5, [r4, #GPIOx_PUPDR]
-	ldr r6, =0x00F3F0F0
-	and r5, r6
-	str r5, [r4, #GPIOx_PUPDR]
-
-	ldr r5, [r4, #GPIOx_AFRL]
-	ldr r6, =0xFF00FF00
-	and r5, r6
-	ldr r6, =0x00BB00BB
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRL]
-
-	ldr r5, [r4, #GPIOx_AFRH]
-	ldr r6, =0x0000FF0F
-	and r5, r6
-	ldr r6, =0xBBBB00B0
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRH]
-
-	pop { r4, r5, r6, pc }
-
-/**
- * @brief Initialize the GPIOC pins required by the lcd
- * @param None
- * @return None
-*/
-.type	init_lcd_gpioc %function
-init_lcd_gpioc:
-	push { r4, r5, r6, lr }
-
-	ldr r4, =GPIOC_BASE
-	ldr r5, [r4, #GPIOx_MODER]
-	ldr r6, =0xFFFC003F
-	and r5, r6
-	ldr r6, =0x0002AA80
-	orr r5, r6
-	str r5, [r4, #GPIOx_MODER]
-
-	ldr r5, [r4, #GPIOx_OSPEEDR]
-	ldr r6, =0xFFFC003F
-	and r5, r6
-	ldr r6, =0x0003FFC0
-	orr r5, r6
-	str r5, [r4, #GPIOx_OSPEEDR]
-
-	ldr r5, [r4, #GPIOx_OTYPER]
-	ldr r6, =0xFFFFFE07
-	and r5, r6
-	str r5, [r4, #GPIOx_OTYPER]
-
-	ldr r5, [r4, #GPIOx_PUPDR]
-	ldr r6, =0xFFFC003F
-	and r5, r6
-	str r5, [r4, #GPIOx_PUPDR]
-
-	ldr r5, [r4, #GPIOx_AFRL]
-	ldr r6, =0x00000FFF
-	and r5, r6
-	ldr r6, =0xBBBBB000
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRL]
-
-	ldr r5, [r4, #GPIOx_AFRH]
-	ldr r6, =0xFFFFFFF0
-	and r5, r6
-	ldr r6, =0x0000000B
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRH]
-
-	pop { r4, r5, r6, pc }
-
-/**
- * @brief Initialize the GPIOC pins required by the lcd
- * @param None
- * @return None
-*/
-.type	init_lcd_gpiod %function
-init_lcd_gpiod:
-	push { r4, r5, r6, lr }
-
-	ldr r4, =GPIOD_BASE
-	ldr r5, [r4, #GPIOx_MODER]
-	ldr r6, =0x0000FFFF
-	and r5, r6
-	ldr r6, =0xAAAA0000
-	orr r5, r6
-	str r5, [r4, #GPIOx_MODER]
-
-	ldr r5, [r4, #GPIOx_OSPEEDR]
-	ldr r6, =0x0000FFFF
-	and r5, r6
-	ldr r6, =0xFFFF0000
-	orr r5, r6
-	str r5, [r4, #GPIOx_OSPEEDR]
-
-	ldr r5, [r4, #GPIOx_OTYPER]
-	ldr r6, =0xFFFF00FF
-	and r5, r6
-	str r5, [r4, #GPIOx_OTYPER]
-
-	ldr r5, [r4, #GPIOx_PUPDR]
-	ldr r6, =0x0000FFFF
-	and r5, r6
-	str r5, [r4, #GPIOx_PUPDR]
-
-	ldr r5, [r4, #GPIOx_AFRH]
-	ldr r6, =0x00000000
-	and r5, r6
-	ldr r6, =0xBBBBBBBB
-	orr r5, r6
-	str r5, [r4, #GPIOx_AFRH]
-
-	pop { r4, r5, r6, pc }
+    pop { r4, r5, r6, r7, r8, r9, pc }

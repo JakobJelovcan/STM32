@@ -3,6 +3,15 @@
 .fpu softvfp
 .thumb
 
+.equ    GPIOA_BASE, 0x48000000
+.equ    GPIOB_BASE, 0x48000400
+.equ    GPIOC_BASE, 0x48000800
+.equ    GPIOD_BASE, 0x48000C00
+.equ    GPIOE_BASE, 0x48001000
+.equ    GPIOF_BASE, 0x48001400
+.equ    GPIOG_BASE, 0x48001800
+.equ    GPIOH_BASE, 0x48001C00
+
 .equ LCD_BASE, 						0x40002400
 .equ LCD_CR,						0x00
 .equ LCD_FCR,						0x04
@@ -148,6 +157,30 @@
 .equ LCD_BAR_0_2_SEG_MASK,			~(LCD_BAR_0_SEG | LCD_BAR_1_SEG)
 .equ LCD_BAR_1_3_SEG_MASK,			~(LCD_BAR_1_SEG | LCD_BAR_3_SEG)
 
+.equ GPIO_PIN_0,                    (1 << 0)
+.equ GPIO_PIN_1,                    (1 << 1)
+.equ GPIO_PIN_2,                    (1 << 2)
+.equ GPIO_PIN_3,                    (1 << 3)
+.equ GPIO_PIN_4,                    (1 << 4)
+.equ GPIO_PIN_5,                    (1 << 5)
+.equ GPIO_PIN_6,                    (1 << 6)
+.equ GPIO_PIN_7,                    (1 << 7)
+.equ GPIO_PIN_8,                    (1 << 8)
+.equ GPIO_PIN_9,                    (1 << 9)
+.equ GPIO_PIN_10,                   (1 << 10)
+.equ GPIO_PIN_11,                   (1 << 11)
+.equ GPIO_PIN_12,                   (1 << 12)
+.equ GPIO_PIN_13,                   (1 << 13)
+.equ GPIO_PIN_14,                   (1 << 14)
+.equ GPIO_PIN_15,                   (1 << 15)
+
+.equ GPIOA_PINS,                    (GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_15)
+.equ GPIOB_PINS,                    (GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_9 | GPIO_PIN_12 | \
+                                    GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15)
+.equ GPIOC_PINS,                    (GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_8)
+.equ GPIOD_PINS,                    (GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | \
+                                    GPIO_PIN_14 | GPIO_PIN_15)
+
 /**
 ================================================================================
                               GLASS LCD MAPPING
@@ -214,9 +247,41 @@ init_lcd:
 	push { r4, r5, r6, lr }
 
 	//Enable lcd gpio pins
-	bl init_lcd_gpio
+    bl rcc_gpioa_clk_enable
+    bl rcc_gpiob_clk_enable
+    bl rcc_gpioc_clk_enable
+    bl rcc_gpiod_clk_enable
 
-	//Wait for the capacitor on LCDV to charge (2 ms)
+    ldr r2, =0b10           //Mode
+    ldr r3, =0b00           //Pullup/down
+    ldr r4, =0b1011         //Alternate function
+    str r4, [sp, #-4]!      //Store on stack
+    ldr r4, =0b11           //Output speed
+    str r4, [sp, #-4]!      //Store on stack
+
+    //Initialize GPIO A
+    ldr r0, =GPIOA_BASE
+    ldr r1, =GPIOA_PINS
+    bl init_gpio
+
+    //Initialize GPIO B
+    ldr r0, =GPIOB_BASE
+    ldr r1, =GPIOB_PINS
+    bl init_gpio
+
+    //Initialize GPIO C
+    ldr r0, =GPIOC_BASE
+    ldr r1, =GPIOC_PINS
+    bl init_gpio
+
+    //Initialize GPIO D
+    ldr r0, =GPIOD_BASE
+    ldr r1, =GPIOD_PINS
+    bl init_gpio
+
+    add sp, #8              //Remove alternate function and output speed from the stack
+
+	//Wait for the external capacitor (Cext) on LCDV to charge (2 ms)
 	ldr r0, =0x02
 	bl systick_wait_ms
 
@@ -239,14 +304,14 @@ init_lcd:
 		Clock divider: 1
 		Blink mode: 0
 		Blink frequency: 0
-		Contrast control: 7
+		Contrast control: 3
 		Dead time duration: 0
 		Pulse on duration: 0
 		Update display done interrupt enable: 0
 		Start of frame interrupt enable: 0
 		High drive enable: 0
 	*/
-	ldr r5, =0x01041C00
+	ldr r5, =0x01040C00
 	str r5, [r4, #LCD_FCR]
 
 	//Wait for FCR changes to synchronize
@@ -656,7 +721,43 @@ lcd_display_char:
     pop { pc }
 
 /**
- * @brief Display character on the lcd
+ * @brief Wait for update display request to finish
+ * @param None
+ * @return None
+*/
+.type	lcd_wait_update_display_request, %function
+.global	lcd_wait_update_display_request
+lcd_wait_update_display_request:
+	push { r4, r5, lr }
+
+	ldr r4, =LCD_BASE
+1:
+	ldr r5, [r4, #LCD_SR]
+	tst r5, #(1 << 2)
+	bne 1b
+
+	pop { r4, r5, pc }
+
+/**
+ * @brief Request display update
+ * @param None
+ * @return None
+*/
+.type	lcd_enable_update_display_request, %function
+.global	lcd_enable_update_display_request
+lcd_enable_update_display_request:
+	push { r4, r5, lr }
+
+	ldr r4, =LCD_BASE
+	ldr r5, =(1 << 2)
+	str r5, [r4, #LCD_SR]
+
+	pop { r4, r5, pc }
+
+
+
+/**
+ * @brief Write character to the LCD ram
  * @param Position
  * @param Character
  * @return None
@@ -1400,37 +1501,3 @@ lcd_write_char:
 
 2:
     pop { r4, r5, r6, r7, pc }
-
-/**
- * @brief Wait for update display request to finish
- * @param None
- * @return None
-*/
-.type	lcd_wait_update_display_request, %function
-.global	lcd_wait_update_display_request
-lcd_wait_update_display_request:
-	push { r4, r5, lr }
-
-	ldr r4, =LCD_BASE
-1:
-	ldr r5, [r4, #LCD_SR]
-	tst r5, #(1 << 2)
-	bne 1b
-
-	pop { r4, r5, pc }
-
-/**
- * @brief Request display update
- * @param None
- * @return None
-*/
-.type	lcd_enable_update_display_request, %function
-.global	lcd_enable_update_display_request
-lcd_enable_update_display_request:
-	push { r4, r5, lr }
-
-	ldr r4, =LCD_BASE
-	ldr r5, =(1 << 2)
-	str r5, [r4, #LCD_SR]
-
-	pop { r4, r5, pc }
