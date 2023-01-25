@@ -197,6 +197,25 @@ numbers:            .hword 0x5F00, 0x4200, 0xF500, 0x6700, 0xEA00, 0xAF00, 0xBF0
 
 .align
 .text
+
+/*Mask Shift Or
+ * d: destination register
+ * t: temporary register for storing the mask
+ * m: register containing the mask
+ * ms: mask shift
+ * os: or shift
+ * d = d | (((m & (1 << ms)) << (os - ms))  if os - ms >= 0
+ * d = d | (((m & (1 << ms)) >> (ms - os))  if os - ms < 0
+*/
+.macro mso d, t, m, ms, os
+    and \t, \m, #(1 << \ms)
+    .if \os-\ms >= 0    //if os - ms is positive or 0
+        orr \d, \d, \t, lsl #(\os - \ms)
+    .else               //if os - ms is negative
+        orr \d, \d, \t, lsr #(\ms - \os)
+    .endif
+.endm
+
 /**
  * @brief Initialize the lcd
  * @param None
@@ -897,103 +916,51 @@ lcd_write_char:
     bne 1f
 
     //LCD_COM_0
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_1_COM_0]
-
-    //LCD_SEG_0
-    and r0, r7, #(1 << 12)
-    orr r1, r1, r0, lsr #8
-
-    //LCD_SEG_1
-    and r0, r7, #(1 << 13)
-    orr r1, r1, r0, lsl #10
-
-    //LCD_SEG_22
-    and r0, r7, #(1 << 14)
-    orr r1, r1, r0, lsl #8
-
-    //LCD_SEG_23
-    and r0, r7, #(1 << 15)
-    orr r1, r1, r0, lsr #12
-
-    ldr r2, =LCD_DIGIT_1_COM_0_SEG_MASK
+    ldr r2, =LCD_DIGIT_1_COM_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 12, LCD_SEG_0_SHIFT
+    mso r5, r0, r7, 13, LCD_SEG_1_SHIFT
+    mso r5, r0, r7, 14, LCD_SEG_22_SHIFT
+    mso r5, r0, r7, 15, LCD_SEG_23_SHIFT
+
     str r5, [r4, #LCD_DIGIT_1_COM_0]
 
     //LCD_COM_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_1_COM_1]
-
-    //LCD_SEG_0
-    and r0, r7, #(1 << 8)
-    orr r1, r1, r0, lsr #4
-
-    //LCD_SEG_1
-    and r0, r7, #(1 << 9)
-    orr r1, r1, r0, lsl #14
-
-    //LCD_SEG_22
-    and r0, r7, #(1 << 10)
-    orr r1, r1, r0, lsl #12
-
-    //LCD_SEG_23
-    and r0, r7, #(1 << 11)
-    orr r1, r1, r0, lsr #8
-
     ldr r2, =LCD_DIGIT_1_COM_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 8, LCD_SEG_0_SHIFT
+    mso r5, r0, r7, 9, LCD_SEG_1_SHIFT
+    mso r5, r0, r7, 10, LCD_SEG_22_SHIFT
+    mso r5, r0, r7, 11, LCD_SEG_23_SHIFT
+
     str r5, [r4, #LCD_DIGIT_1_COM_1]
 
     //LCD_COM_2
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_1_COM_2]
-
-    //LCD_SEG_0
-    and r0, r7, #(1 << 4)
-    orr r1, r1, r0
-
-    //LCD_SEG_1
-    and r0, r7, #(1 << 5)
-    orr r1, r1, r0, lsl #18
-
-    //LCD_SEG_22
-    and r0, r7, #(1 << 6)
-    orr r1, r1, r0, lsl #16
-
-    //LCD_SEG_23
-    and r0, r7, #(1 << 7)
-    orr r1, r1, r0, lsr #4
-
     ldr r2, =LCD_DIGIT_1_COM_2_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 4, LCD_SEG_0_SHIFT
+    mso r5, r0, r7, 5, LCD_SEG_1_SHIFT
+    mso r5, r0, r7, 6, LCD_SEG_22_SHIFT
+    mso r5, r0, r7, 7, LCD_SEG_23_SHIFT
+
     str r5, [r4, #LCD_DIGIT_1_COM_2]
 
     //LCD_COM_3
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_1_COM_3]
-
-    //LCD_SEG_0
-    and r0, r7, #(1 << 0)
-    orr r1, r1, r0, lsl #4
-
-    //LCD_SEG_1
-    and r0, r7, #(1 << 1)
-    orr r1, r1, r0, lsl #22
-
-    //LCD_SEG_22
-    and r0, r7, #(1 << 2)
-    orr r1, r1, r0, lsl #20
-
-    //LCD_SEG_23
-    and r0, r7, #(1 << 3)
-    orr r1, r1, r0
-
     ldr r2, =LCD_DIGIT_1_COM_3_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 0, LCD_SEG_0_SHIFT
+    mso r5, r0, r7, 1, LCD_SEG_1_SHIFT
+    mso r5, r0, r7, 2, LCD_SEG_22_SHIFT
+    mso r5, r0, r7, 3, LCD_SEG_23_SHIFT
+
     str r5, [r4, #LCD_DIGIT_1_COM_3]
 
     b 2f
@@ -1003,103 +970,51 @@ lcd_write_char:
     bne 1f
 
     //LCD_COM_0
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_2_COM_0]
-
-    //LCD_SEG_2
-    and r0, r7, #(1 << 12)
-    orr r1, r1, r0, lsr #6
-
-    //LCD_SEG_3
-    and r0, r7, #(1 << 13)
-    orr r1, r1, r0
-
-    //LCD_SEG_20
-    and r0, r7, #(1 << 14)
-    orr r1, r1, r0, lsr #2
-
-    //LCD_SEG_21
-    and r0, r7, #(1 << 15)
-    orr r1, r1, r0, lsr #10
-
     ldr r2, =LCD_DIGIT_2_COM_0_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 12, LCD_SEG_2_SHIFT
+    mso r5, r0, r7, 13, LCD_SEG_3_SHIFT
+    mso r5, r0, r7, 14, LCD_SEG_20_SHIFT
+    mso r5, r0, r7, 15, LCD_SEG_21_SHIFT
+
     str r5, [r4, #LCD_DIGIT_2_COM_0]
 
     //LCD_COM_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_2_COM_1]
-
-    //LCD_SEG_2
-    and r0, r7, #(1 << 8)
-    orr r1, r1, r0, lsr #2
-
-    //LCD_SEG_3
-    and r0, r7, #(1 << 9)
-    orr r1, r1, r0, lsl #4
-
-    //LCD_SEG_20
-    and r0, r7, #(1 << 10)
-    orr r1, r1, r0, lsl #2
-
-    //LCD_SEG_21
-    and r0, r7, #(1 << 11)
-    orr r1, r1, r0, lsr #6
-
     ldr r2, =LCD_DIGIT_2_COM_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 8, LCD_SEG_2_SHIFT
+    mso r5, r0, r7, 9, LCD_SEG_3_SHIFT
+    mso r5, r0, r7, 10, LCD_SEG_20_SHIFT
+    mso r5, r0, r7, 11, LCD_SEG_21_SHIFT
+
     str r5, [r4, #LCD_DIGIT_2_COM_1]
 
     //LCD_COM_2
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_2_COM_2]
-
-    //LCD_SEG_2
-    and r0, r7, #(1 << 4)
-    orr r1, r1, r0, lsl #2
-
-    //LCD_SEG_3
-    and r0, r7, #(1 << 5)
-    orr r1, r1, r0, lsl #8
-
-    //LCD_SEG_20
-    and r0, r7, #(1 << 6)
-    orr r1, r1, r0, lsl #6
-
-    //LCD_SEG_21
-    and r0, r7, #(1 << 7)
-    orr r1, r1, r0, lsr #2
-
     ldr r2, =LCD_DIGIT_2_COM_2_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 4, LCD_SEG_2_SHIFT
+    mso r5, r0, r7, 5, LCD_SEG_3_SHIFT
+    mso r5, r0, r7, 6, LCD_SEG_20_SHIFT
+    mso r5, r0, r7, 7, LCD_SEG_21_SHIFT
+
     str r5, [r4, #LCD_DIGIT_2_COM_2]
 
     //LCD_COM_3
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_2_COM_3]
-
-    //LCD_SEG_2
-    and r0, r7, #(1 << 0)
-    orr r1, r1, r0, lsl #6
-
-    //LCD_SEG_3
-    and r0, r7, #(1 << 1)
-    orr r1, r1, r0, lsl #12
-
-    //LCD_SEG_20
-    and r0, r7, #(1 << 2)
-    orr r1, r1, r0, lsl #10
-
-    //LCD_SEG_21
-    and r0, r7, #(1 << 3)
-    orr r1, r1, r0, lsl #2
-
     ldr r2, =LCD_DIGIT_2_COM_3_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 0, LCD_SEG_2_SHIFT
+    mso r5, r0, r7, 1, LCD_SEG_3_SHIFT
+    mso r5, r0, r7, 2, LCD_SEG_20_SHIFT
+    mso r5, r0, r7, 3, LCD_SEG_21_SHIFT
+
     str r5, [r4, #LCD_DIGIT_2_COM_3]
 
     b 2f
@@ -1109,103 +1024,51 @@ lcd_write_char:
     bne 1f
 
     //LCD_COM_0
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_3_COM_0]
-
-    //LCD_SEG_4
-    and r0, r7, #(1 << 12)
-    orr r1, r1, r0, lsl #3
-
-    //LCD_SEG_5
-    and r0, r7, #(1 << 13)
-    orr r1, r1, r0, lsl #16
-
-    //LCD_SEG_18
-    and r0, r7, #(1 << 14)
-    orr r1, r1, r0, lsl #14
-
-    //LCD_SEG_19
-    and r0, r7, #(1 << 15)
-    orr r1, r1, r0, lsr #1
-
     ldr r2, =LCD_DIGIT_3_COM_0_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 12, LCD_SEG_4_SHIFT
+    mso r5, r0, r7, 13, LCD_SEG_5_SHIFT
+    mso r5, r0, r7, 14, LCD_SEG_18_SHIFT
+    mso r5, r0, r7, 15, LCD_SEG_19_SHIFT
+
     str r5, [r4, #LCD_DIGIT_3_COM_0]
 
     //LCD_COM_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_3_COM_1]
-
-    //LCD_SEG_4
-    and r0, r7, #(1 << 8)
-    orr r1, r1, r0, lsl #7
-
-    //LCD_SEG_5
-    and r0, r7, #(1 << 9)
-    orr r1, r1, r0, lsl #20
-
-    //LCD_SEG_18
-    and r0, r7, #(1 << 10)
-    orr r1, r1, r0, lsl #18
-
-    //LCD_SEG_19
-    and r0, r7, #(1 << 11)
-    orr r1, r1, r0, lsl #3
-
     ldr r2, =LCD_DIGIT_3_COM_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 8, LCD_SEG_4_SHIFT
+    mso r5, r0, r7, 9, LCD_SEG_5_SHIFT
+    mso r5, r0, r7, 10, LCD_SEG_18_SHIFT
+    mso r5, r0, r7, 11, LCD_SEG_19_SHIFT
+
     str r5, [r4, #LCD_DIGIT_3_COM_1]
 
     //LCD_COM_2
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_3_COM_2]
-
-    //LCD_SEG_4
-    and r0, r7, #(1 << 4)
-    orr r1, r1, r0, lsl #11
-
-    //LCD_SEG_5
-    and r0, r7, #(1 << 5)
-    orr r1, r1, r0, lsl #24
-
-    //LCD_SEG_18
-    and r0, r7, #(1 << 6)
-    orr r1, r1, r0, lsl #22
-
-    //LCD_SEG_19
-    and r0, r7, #(1 << 7)
-    orr r1, r1, r0, lsl #7
-
     ldr r2, =LCD_DIGIT_3_COM_2_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 4, LCD_SEG_4_SHIFT
+    mso r5, r0, r7, 5, LCD_SEG_5_SHIFT
+    mso r5, r0, r7, 6, LCD_SEG_18_SHIFT
+    mso r5, r0, r7, 7, LCD_SEG_19_SHIFT
+
     str r5, [r4, #LCD_DIGIT_3_COM_2]
 
     //LCD_COM_3
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_3_COM_3]
-
-    //LCD_SEG_4
-    and r0, r7, #(1 << 0)
-    orr r1, r1, r0, lsl #15
-
-    //LCD_SEG_5
-    and r0, r7, #(1 << 1)
-    orr r1, r1, r0, lsl #28
-
-    //LCD_SEG_18
-    and r0, r7, #(1 << 2)
-    orr r1, r1, r0, lsl #26
-
-    //LCD_SEG_19
-    and r0, r7, #(1 << 3)
-    orr r1, r1, r0, lsl #11
-
     ldr r2, =LCD_DIGIT_3_COM_3_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 0, LCD_SEG_4_SHIFT
+    mso r5, r0, r7, 1, LCD_SEG_5_SHIFT
+    mso r5, r0, r7, 2, LCD_SEG_18_SHIFT
+    mso r5, r0, r7, 3, LCD_SEG_19_SHIFT
+
     str r5, [r4, #LCD_DIGIT_3_COM_3]
 
     b 2f
@@ -1215,139 +1078,83 @@ lcd_write_char:
     bne 1f
 
     //LCD_COM_0
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_4_COM_0]
-
-    //LCD_SEG_6
-    and r0, r7, #(1 << 12)
-    orr r1, r1, r0, lsl #19
-
-    //LCD_SEG_17
-    and r0, r7, #(1 << 15)
-    orr r1, r1, r0, lsl #15
-
     ldr r2, =LCD_DIGIT_4_COM_0_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 12, LCD_SEG_6_SHIFT
+    mso r5, r0, r7, 15, LCD_SEG_17_SHIFT
+
     str r5, [r4, #LCD_DIGIT_4_COM_0]
 
     //LCD_COM_0_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_4_COM_0_1]
-
-    //LCD_SEG_7
-    and r0, r7, #(1 << 13)
-    orr r1, r1, r0, lsr #12
-
-    //LCD_SEG_16
-    and r0, r7, #(1 << 14)
-    orr r1, r1, r0, lsr #14
-
     ldr r2, =LCD_DIGIT_4_COM_0_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 13, LCD_SEG_7_SHIFT
+    mso r5, r0, r7, 14, LCD_SEG_16_SHIFT
+
     str r5, [r4, #LCD_DIGIT_4_COM_0_1]
 
     //LCD_COM_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_4_COM_1]
-
-    //LCD_SEG_6
-    and r0, r7, #(1 << 8)
-    orr r1, r1, r0, lsl #23
-
-    //LCD_SEG_17
-    and r0, r7, #(1 << 11)
-    orr r1, r1, r0, lsl #19
-
     ldr r2, =LCD_DIGIT_4_COM_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 8, LCD_SEG_6_SHIFT
+    mso r5, r0, r7, 11, LCD_SEG_17_SHIFT
+
     str r5, [r4, #LCD_DIGIT_4_COM_1]
 
     //LCD_COM_1_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_4_COM_1_1]
-
-    //LCD_SEG_7
-    and r0, r7, #(1 << 9)
-    orr r1, r1, r0, lsr #8
-
-    //LCD_SEG_16
-    and r0, r7, #(1 << 10)
-    orr r1, r1, r0, lsr #10
-
     ldr r2, =LCD_DIGIT_4_COM_1_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 9, LCD_SEG_7_SHIFT
+    mso r5, r0, r7, 10, LCD_SEG_16_SHIFT
+
     str r5, [r4, #LCD_DIGIT_4_COM_1_1]
 
     //LCD_COM_2
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_4_COM_2]
-
-    //LCD_SEG_6
-    and r0, r7, #(1 << 4)
-    orr r1, r1, r0, lsl #27
-
-    //LCD_SEG_17
-    and r0, r7, #(1 << 7)
-    orr r1, r1, r0, lsl #23
-
     ldr r2, =LCD_DIGIT_4_COM_2_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 4, LCD_SEG_6_SHIFT
+    mso r5, r0, r7, 7, LCD_SEG_17_SHIFT
+
     str r5, [r4, #LCD_DIGIT_4_COM_2]
 
     //LCD_COM_2_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_4_COM_2_1]
-
-    //LCD_SEG_7
-    and r0, r7, #(1 << 5)
-    orr r1, r1, r0, lsr #4
-
-    //LCD_SEG_16
-    and r0, r7, #(1 << 6)
-    orr r1, r1, r0, lsr #6
-
     ldr r2, =LCD_DIGIT_4_COM_2_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 5, LCD_SEG_7_SHIFT
+    mso r5, r0, r7, 6, LCD_SEG_16_SHIFT
+
     str r5, [r4, #LCD_DIGIT_4_COM_2_1]
 
     //LCD_COM_3
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_4_COM_3]
-
-    //LCD_SEG_6
-    and r0, r7, #(1 << 0)
-    orr r1, r1, r0, lsl #31
-
-    //LCD_SEG_17
-    and r0, r7, #(1 << 3)
-    orr r1, r1, r0, lsl #27
-
     ldr r2, =LCD_DIGIT_4_COM_3_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 0, LCD_SEG_6_SHIFT
+    mso r5, r0, r7, 3, LCD_SEG_17_SHIFT
+
     str r5, [r4, #LCD_DIGIT_4_COM_3]
 
     //LCD_COM_3_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_4_COM_3_1]
-
-    //LCD_SEG_7
-    and r0, r7, #(1 << 1)
-    orr r1, r1, r0
-
-    //LCD_SEG_16
-    and r0, r7, #(1 << 2)
-    orr r1, r1, r0, lsr #2
-
     ldr r2, =LCD_DIGIT_4_COM_3_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 1, LCD_SEG_7_SHIFT
+    mso r5, r0, r7, 2, LCD_SEG_16_SHIFT
+
     str r5, [r4, #LCD_DIGIT_4_COM_3_1]
 
     b 2f
@@ -1357,139 +1164,83 @@ lcd_write_char:
     bne 1f
 
     //LCD_COM_0
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_5_COM_0]
-
-    //LCD_SEG_9
-    and r0, r7, #(1 << 13)
-    orr r1, r1, r0, lsl #12
-
-    //LCD_SEG_14
-    and r0, r7, #(1 << 14)
-    orr r1, r1, r0, lsl #10
-
     ldr r2, =LCD_DIGIT_5_COM_0_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 13, LCD_SEG_9_SHIFT
+    mso r5, r0, r7, 14, LCD_SEG_14_SHIFT
+
     str r5, [r4, #LCD_DIGIT_5_COM_0]
 
     //LCD_COM_0_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_5_COM_0_1]
-
-    //LCD_SEG_8
-    and r0, r7, #(1 << 12)
-    orr r1, r1, r0, lsr #9
-
-    //LCD_SEG_15
-    and r0, r7, #(1 << 15)
-    orr r1, r1, r0, lsr #13
-
     ldr r2, =LCD_DIGIT_5_COM_0_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 12, LCD_SEG_8_SHIFT
+    mso r5, r0, r7, 15, LCD_SEG_15_SHIFT
+
     str r5, [r4, #LCD_DIGIT_5_COM_0_1]
 
     //LCD_COM_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_5_COM_1]
-
-    //LCD_SEG_9
-    and r0, r7, #(1 << 9)
-    orr r1, r1, r0, lsl #16
-
-    //LCD_SEG_14
-    and r0, r7, #(1 << 10)
-    orr r1, r1, r0, lsl #14
-
     ldr r2, =LCD_DIGIT_5_COM_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 9, LCD_SEG_9_SHIFT
+    mso r5, r0, r7, 10, LCD_SEG_14_SHIFT
+
     str r5, [r4, #LCD_DIGIT_5_COM_1]
 
     //LCD_COM_1_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_5_COM_1_1]
-
-    //LCD_SEG_8
-    and r0, r7, #(1 << 8)
-    orr r1, r1, r0, lsr #5
-
-    //LCD_SEG_15
-    and r0, r7, #(1 << 11)
-    orr r1, r1, r0, lsr #9
-
     ldr r2, =LCD_DIGIT_5_COM_1_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 8, LCD_SEG_8_SHIFT
+    mso r5, r0, r7, 11, LCD_SEG_15_SHIFT
+
     str r5, [r4, #LCD_DIGIT_5_COM_1_1]
 
     //LCD_COM_2
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_5_COM_2]
-
-    //LCD_SEG_9
-    and r0, r7, #(1 << 5)
-    orr r1, r1, r0, lsl #20
-
-    //LCD_SEG_14
-    and r0, r7, #(1 << 6)
-    orr r1, r1, r0, lsl #18
-
     ldr r2, =LCD_DIGIT_5_COM_2_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 5, LCD_SEG_9_SHIFT
+    mso r5, r0, r7, 6, LCD_SEG_14_SHIFT
+
     str r5, [r4, #LCD_DIGIT_5_COM_2]
 
     //LCD_COM_2_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_5_COM_2_1]
-
-    //LCD_SEG_8
-    and r0, r7, #(1 << 4)
-    orr r1, r1, r0, lsr #1
-
-    //LCD_SEG_15
-    and r0, r7, #(1 << 7)
-    orr r1, r1, r0, lsr #5
-
     ldr r2, =LCD_DIGIT_5_COM_2_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 4, LCD_SEG_8_SHIFT
+    mso r5, r0, r7, 7, LCD_SEG_15_SHIFT
+
     str r5, [r4, #LCD_DIGIT_5_COM_2_1]
 
     //LCD_COM_3
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_5_COM_3]
-
-    //LCD_SEG_9
-    and r0, r7, #(1 << 1)
-    orr r1, r1, r0, lsl #24
-
-    //LCD_SEG_14
-    and r0, r7, #(1 << 2)
-    orr r1, r1, r0, lsl #22
-
     ldr r2, =LCD_DIGIT_5_COM_3_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 1, LCD_SEG_9_SHIFT
+    mso r5, r0, r7, 2, LCD_SEG_14_SHIFT
+
     str r5, [r4, #LCD_DIGIT_5_COM_3]
 
     //LCD_COM_3_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_5_COM_3_1]
-
-    //LCD_SEG_8
-    and r0, r7, #(1 << 0)
-    orr r1, r1, r0, lsl #3
-
-    //LCD_SEG_15
-    and r0, r7, #(1 << 3)
-    orr r1, r1, r0, lsr #1
-
     ldr r2, =LCD_DIGIT_5_COM_3_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 0, LCD_SEG_8_SHIFT
+    mso r5, r0, r7, 3, LCD_SEG_15_SHIFT
+
     str r5, [r4, #LCD_DIGIT_5_COM_3_1]
 
     b 2f
@@ -1499,103 +1250,51 @@ lcd_write_char:
     bne 2f
 
     //LCD_COM_0
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_6_COM_0]
-
-    //LCD_SEG_10
-    and r0, r7, #(1 << 12)
-    orr r1, r1, r0, lsl #5
-
-    //LCD_SEG_11
-    and r0, r7, #(1 << 13)
-    orr r1, r1, r0, lsr #5
-
-    //LCD_SEG_12
-    and r0, r7, #(1 << 14)
-    orr r1, r1, r0, lsr #5
-
-    //LCD_SEG_13
-    and r0, r7, #(1 << 15)
-    orr r1, r1, r0, lsl #11
-
     ldr r2, =LCD_DIGIT_6_COM_0_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 12, LCD_SEG_10_SHIFT
+    mso r5, r0, r7, 13, LCD_SEG_11_SHIFT
+    mso r5, r0, r7, 14, LCD_SEG_12_SHIFT
+    mso r5, r0, r7, 15, LCD_SEG_13_SHIFT
+
     str r5, [r4, #LCD_DIGIT_6_COM_0]
 
     //LCD_COM_1
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_6_COM_1]
-
-    //LCD_SEG_10
-    and r0, r7, #(1 << 8)
-    orr r1, r1, r0, lsl #9
-
-    //LCD_SEG_11
-    and r0, r7, #(1 << 9)
-    orr r1, r1, r0, lsr #1
-
-    //LCD_SEG_12
-    and r0, r7, #(1 << 10)
-    orr r1, r1, r0, lsr #1
-
-    //LCD_SEG_13
-    and r0, r7, #(1 << 11)
-    orr r1, r1, r0, lsl #15
-
     ldr r2, =LCD_DIGIT_6_COM_1_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 8, LCD_SEG_10_SHIFT
+    mso r5, r0, r7, 9, LCD_SEG_11_SHIFT
+    mso r5, r0, r7, 10, LCD_SEG_12_SHIFT
+    mso r5, r0, r7, 11, LCD_SEG_13_SHIFT
+
     str r5, [r4, #LCD_DIGIT_6_COM_1]
 
     //LCD_COM_2
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_6_COM_2]
-
-    //LCD_SEG_10
-    and r0, r7, #(1 << 4)
-    orr r1, r1, r0, lsl #13
-
-    //LCD_SEG_11
-    and r0, r7, #(1 << 5)
-    orr r1, r1, r0, lsl #3
-
-    //LCD_SEG_12
-    and r0, r7, #(1 << 6)
-    orr r1, r1, r0, lsl #3
-
-    //LCD_SEG_13
-    and r0, r7, #(1 << 7)
-    orr r1, r1, r0, lsl #19
-
     ldr r2, =LCD_DIGIT_6_COM_2_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 4, LCD_SEG_10_SHIFT
+    mso r5, r0, r7, 5, LCD_SEG_11_SHIFT
+    mso r5, r0, r7, 6, LCD_SEG_12_SHIFT
+    mso r5, r0, r7, 7, LCD_SEG_13_SHIFT
+
     str r5, [r4, #LCD_DIGIT_6_COM_2]
 
     //LCD_COM_3
-    ldr r1, =0x00
     ldr r5, [r4, #LCD_DIGIT_6_COM_3]
-
-    //LCD_SEG_10
-    and r0, r7, #(1 << 0)
-    orr r1, r1, r0, lsl #17
-
-    //LCD_SEG_11
-    and r0, r7, #(1 << 1)
-    orr r1, r1, r0, lsl #7
-
-    //LCD_SEG_12
-    and r0, r7, #(1 << 2)
-    orr r1, r1, r0, lsl #7
-
-    //LCD_SEG_13
-    and r0, r7, #(1 << 3)
-    orr r1, r1, r0, lsl #23
-
     ldr r2, =LCD_DIGIT_6_COM_3_SEG_MASK
     and r5, r2
-    orr r5, r1
+
+    mso r5, r0, r7, 0, LCD_SEG_10_SHIFT
+    mso r5, r0, r7, 1, LCD_SEG_11_SHIFT
+    mso r5, r0, r7, 2, LCD_SEG_12_SHIFT
+    mso r5, r0, r7, 3, LCD_SEG_13_SHIFT
+
     str r5, [r4, #LCD_DIGIT_6_COM_3]
 
 2:
