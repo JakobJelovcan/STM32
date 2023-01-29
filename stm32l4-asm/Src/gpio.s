@@ -140,3 +140,23 @@ init_gpio:
     bne 1b
 
     pop { r4, r5, r6, r7, r8, r9, pc }
+
+/**
+ * @brief Set or reset GPIO pin
+ * @param GPIO base address
+ * @param Pin
+ * @param Value
+ * @return None
+*/
+.type   gpio_write_pin, %function
+.global gpio_write_pin
+gpio_write_pin:
+    push { lr }
+
+    tst r2, #1
+    ITEE ne
+    strne r1, [r0, #GPIOx_BSSR]
+    lsleq r1, #15
+    streq r1, [r0, #GPIOx_BSSR]
+
+    pop { pc }
