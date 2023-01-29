@@ -5,6 +5,7 @@
 
 .equ GPIOD_BASE,                    0x48000C00
 
+.equ GPIO_PIN_6,                    (1 << 6)
 .equ GPIO_PIN_7,                    (1 << 7)
 
 .text
@@ -30,6 +31,25 @@ gyroscope_init:
     add sp, #8              //Remove arguments from the stack
 
     bl gyroscope_cs_high    //Deselect
+
+    lb rcc_gpiob_clk_enable
+
+    ldr r0, =GPIOB_BASE
+    ldr r1, =GPIO_PIN_6
+    ldr r2, =0b00
+    ldr r3, =0b11
+    ldr r4, =0b0000
+    str r4, [sp, #-4]!
+    ldr r4, =0b00
+    str r4, [sp, #-4]!
+
+    bl init_gpio
+
+    ldr r1, =GPIO_PIN_7
+
+    bl init_gpio
+
+    add sp, #8              //Remove arguments from the stack
 
     pop { r4, r5, pc }
 
