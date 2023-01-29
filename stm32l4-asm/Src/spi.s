@@ -76,7 +76,7 @@ spi2_init:
      * Clock polarity: low (CPOL = 0)
      * Clock phase: first (rising) edge (CPHA = 0)
      * Software slave managment: enable (SSM = 1)
-     * Baud rate prescaler: /2 (BR = 0)
+     * Baud rate prescaler: /4 (BR = 001)
      * First bit: msb (LSBFIRST = 0)
      * CRC calculation: disable (CRCEN = 0)
      * SPI enable: disable (SPE = 0)
@@ -84,7 +84,7 @@ spi2_init:
     ldr r5, [r4, #SPIx_CR1]
     ldr r6, =0x5800
     and r5, r6
-    ldr r6, =0x0304
+    ldr r6, =0x030C
     orr r5, r6
     str r5, [r4, #SPIx_CR1]
 
@@ -123,7 +123,7 @@ spi2_disable:
     push { r4, r5, r6, lr }
 
     ldr r4, =SPI2_BASE
-
+/*
 1:  ldr r5, [r4, #SPIx_SR]
     tst r5, #(0b11 << 11)
     bne 1b
@@ -131,13 +131,122 @@ spi2_disable:
 1:  ldr r5, [r4, #SPIx_SR]
     tst r5, #(1 << 7)
     bne 1b
-
+*/
     ldr r5, [r4, #SPIx_CR1]
     bic r5, #(1 << 6)
     str r5, [r4, #SPIx_CR1]
-
+/*
 1:  ldr r5, [r4, #SPIx_SR]
     tst r5, #(0b11 << 9)
     bne 1b
-
+*/
     pop { r4, r5, r6, pc }
+
+/**
+ * @brief Write and read byte from SPI2
+ * @param Byte to write
+ * @return Read data
+*/
+.type   spi2_write_read, %function
+.global spi2_write_read
+spi2_write_read:
+    push { r4, r5, lr }
+
+    bl spi2_enable
+
+    ldr r4, =SPI2_BASE
+
+    //Wait for transmit empty
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, #(1 << 1)
+    beq 1b
+
+    str r0, [r4, #SPIx_DR]
+
+    //Wait for receive empty
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, #(1 << 0)
+    beq 1b
+
+    ldr r0, [r4, #SPIx_DR]
+
+    //Wait for FIFO transmition level empty
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, #(0b11 << 11)
+    bne 1b
+
+    //Wait for busy
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, #(1 << 7)
+    bne 1b
+
+    bl spi2_disable
+
+    pop { r4, r5, pc }
+
+/**
+ * @brief Write to SPI2
+ * @param Byte to write
+ * @return None
+*/
+.type   spi2_write, %function
+.global spi2_write
+spi2_write:
+    push { r4, r5, lr }
+
+    bl spi2_enable
+
+    ldr r4, =SPI2_BASE
+
+    //Wait for transmit empty
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, #(1 << 1)
+    beq 1b
+
+    str r0, [r4, #SPIx_DR]
+
+    //Wait for busy
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, #(1 << 7)
+
+    bl spi2_disable
+
+    pop { r4, r5, pc }
+
+/**
+ * @brief Read from SPI2
+ * @return Read data
+*/
+.type   spi2_read, %function
+.global spi2_read
+spi2_read:
+    push { r4, r5, lr }
+
+    bl spi2_enable
+
+    //Data Synchronization Barrier
+    dsb
+    dsb
+    dsb
+    dsb
+    dsb
+    dsb
+    dsb
+    dsb
+
+    bl spi2_disable
+
+    ldr r4, =SPI2_BASE
+
+    //Wait for receive empty
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, #(1 << 0)
+    beq 1b
+
+    ldr r0, [r4, #SPIx_DR]
+
+    //Wait for busy
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, #(1 << 7)
+
+    pop { r4, r5, pc }

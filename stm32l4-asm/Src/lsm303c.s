@@ -9,34 +9,37 @@
 .equ GPIO_PIN_0,                    (1 << 0)
 
 .text
+/*
+ * Magnetometer and accelerometer (LSM303C) driver
+*/
 
-.type   magnetometer_init, %function
-.global magnetometer_init
-magnetometer_init:
+.type   magneto_init, %function
+.global magneto_init
+magneto_init:
     push { r4, r5, lr }
 
     bl rcc_gpioc_clk_enable
 
     ldr r0, =GPIOC_BASE
     ldr r1, =GPIO_PIN_0
-    ldr r2, =0b01
-    ldr r3, =0b00
-    ldr r4, =0b0000
+    ldr r2, =0b01           //Mode
+    ldr r3, =0b00           //Pull up/down
+    ldr r4, =0b0000         //Alternate function
     str r4, [sp, #-4]!
-    ldr r4, =0b11
+    ldr r4, =0b11           //Output speed
     str r4, [sp, #-4]!
 
     bl init_gpio
 
     add sp, #8              //Remove arguments from the stack
 
-    bl magnetometer_cs_high    //Deselect
+    bl magneto_cs_high    //Deselect
 
     pop { r4, r5, pc }
 
-.type   magnetometer_cs_high, %function
-.global magnetometer_cs_high
-magnetometer_cs_high:
+.type   magneto_cs_high, %function
+.global magneto_cs_high
+magneto_cs_high:
     push { r4, r5, lr }
 
     ldr r0, =GPIOC_BASE
@@ -46,9 +49,9 @@ magnetometer_cs_high:
 
     pop { r4, r5, pc }
 
-.type   magnetometer_cs_low, %function
-.global magnetometer_cs_low
-magnetometer_cs_low:
+.type   magneto_cs_low, %function
+.global magneto_cs_low
+magneto_cs_low:
     push { r4, r5, lr }
 
     ldr r0, =GPIOC_BASE
@@ -58,33 +61,33 @@ magnetometer_cs_low:
 
     pop { r4, r5, pc }
 
-.type   accelerometer_init, %function
-.global accelerometer_init
-accelerometer_init:
+.type   accelero_init, %function
+.global accelero_init
+accelero_init:
     push { r4, r5, lr }
 
     bl rcc_gpioe_clk_enable
 
     ldr r0, =GPIOE_BASE
     ldr r1, =GPIO_PIN_0
-    ldr r2, =0b01
-    ldr r3, =0b00
-    ldr r4, =0b0000
+    ldr r2, =0b01           //Mode
+    ldr r3, =0b00           //Pull up/down
+    ldr r4, =0b0000         //Alternate function
     str r4, [sp, #-4]!
-    ldr r4, =0b11
+    ldr r4, =0b11           //Output speed
     str r4, [sp, #-4]!
 
     bl init_gpio
 
     add sp, #8              //Remove arguments from the stack
 
-    bl accelerometer_cs_high    //Deselect
+    bl accelero_cs_high    //Deselect
 
     pop { r4, r5, pc }
 
-.type   accelerometer_cs_high, %function
-.global accelerometer_cs_high
-accelerometer_cs_high:
+.type   accelero_cs_high, %function
+.global accelero_cs_high
+accelero_cs_high:
     push { r4, r5, lr }
 
     ldr r0, =GPIOE_BASE
@@ -94,9 +97,9 @@ accelerometer_cs_high:
 
     pop { r4, r5, pc }
 
-.type   accelerometer_cs_low, %function
-.global accelerometer_cs_low
-accelerometer_cs_low:
+.type   accelero_cs_low, %function
+.global accelero_cs_low
+accelero_cs_low:
     push { r4, r5, lr }
 
     ldr r0, =GPIOE_BASE
