@@ -12,12 +12,12 @@ string: .space 128
 .global main
 
 main:
-    bl init_lcd
-    bl init_usart2
+    bl lcd_init
+    bl usart2_init
 
     ldr r0, =string
     ldr r1, =0x7F               //Maximum length
-    bl receive_string_usart2
+    bl usart2_receive_string
 
     bl lcd_clear
 

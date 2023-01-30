@@ -36,18 +36,18 @@
  * @param Alternate function
  * @return None
 */
-.type   init_gpio, %function
-.global init_gpio
-init_gpio:
+.type   gpio_init, %function
+.global gpio_init
+gpio_init:
     push { r4, r5, r6, r7, r8, r9, lr }
 
     ldr r4, [sp, #28]  //On stack
     ldr r5, [sp, #32]  //On stack
 
-    and r2, #0b0011     //Mask mode 2b
-    and r3, #0b0011     //Mask pull 2b
-    and r4, #0b0011     //Mask speed 2b
-    and r5, #0b1111     //Mask alternate 4b
+    and r2, #0b00010011     //Mask mode 5b (b1, b0: mode, b3: otype)
+    and r3, #0b00000011     //Mask pull 2b
+    and r4, #0b00000011     //Mask speed 2b
+    and r5, #0b00001111     //Mask alternate 4b
 
     //r0: GPIOx_BASE
     //r1: pins
@@ -81,7 +81,8 @@ init_gpio:
     ldr r9, [r0, #GPIOx_OTYPER]
     lsl r7, r6
     bic r9, r7
-    and r7, r2, #0b01
+    and r7, r2, #(1 << 4)
+    lsr r7, #4
     lsl r7, r6
     orr r9, r7
     str r9, [r0, #GPIOx_OTYPER]
@@ -130,7 +131,8 @@ init_gpio:
     lsl r8, r6, #1          //Position * 2
     lsl r7, r8
     bic r9, r7
-    lsl r7, r2, r8
+    and r7, r2, #0b11
+    lsl r7, r8
     orr r9, r7
     str r9, [r0, #GPIOx_MODER]
 
@@ -140,3 +142,23 @@ init_gpio:
     bne 1b
 
     pop { r4, r5, r6, r7, r8, r9, pc }
+
+/**
+ * @brief Set or reset GPIO pin
+ * @param GPIO base address
+ * @param Pin
+ * @param Value
+ * @return None
+*/
+.type   gpio_write_pin, %function
+.global gpio_write_pin
+gpio_write_pin:
+    push { lr }
+
+    tst r2, #1
+    ITEE ne
+    strne r1, [r0, #GPIOx_BSSR]
+    lsleq r1, #15
+    streq r1, [r0, #GPIOx_BSSR]
+
+    pop { pc }

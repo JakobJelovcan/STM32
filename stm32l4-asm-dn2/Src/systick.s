@@ -16,9 +16,9 @@
  * @param None
  * @return None
 */
-.type   init_systick %function
-.global init_systick
-init_systick:
+.type   systick_init %function
+.global systick_init
+systick_init:
     push { r4, r5, lr }
 
     ldr r5, =(1 << 2)            //Set clock source to AHB
@@ -31,9 +31,9 @@ init_systick:
  * @param None
  * @return None
 */
-.type   get_systick_countflag %function
-.global get_systick_countflag
-get_systick_countflag:
+.type   systick_get_countflag %function
+.global systick_get_countflag
+systick_get_countflag:
     push { r4, r5, lr }
 
     ldr r0, [r4, #STK_CTRL]
@@ -138,7 +138,7 @@ systick_wait_ms:
     ldr r4, =STK_BASE
     bl systick_set_reload_value
     bl systick_clear_current_value
-    bl init_systick
+    bl systick_init
     bl systick_enable
 1:
     ldr r0, [r4, #STK_CTRL]

@@ -24,10 +24,10 @@
 .equ USARTx_RDR,        0x24
 .equ USARTx_TDR,        0x28
 
-.type   init_usart2 %function
-.global init_usart2
+.type   usart2_init %function
+.global usart2_init
 
-init_usart2:
+usart2_init:
     push { r4, r5, lr }
 
     //Enable usart2
@@ -71,7 +71,7 @@ init_usart2:
 
     pop { r4, r5, pc }
 
-receive_char_usart2:
+usart2_receive_char:
     push { r4, r5, lr }
 
     ldr r4, =USART2_BASE
@@ -83,7 +83,7 @@ receive_char_usart2:
 
     pop { r4, r5, pc }
 
-send_char_usart2:
+usart2_send_char:
     push { r4, r5, lr }
 
      ldr r4, =USART2_BASE
@@ -101,14 +101,14 @@ send_char_usart2:
  * @param Maximum length of string
  * @return None
 */
-.type   receive_string_usart2 %function
-.global receive_string_usart2
-receive_string_usart2:
+.type   usart2_receive_string %function
+.global usart2_receive_string
+usart2_receive_string:
     push { r4, lr }
 
     mov r4, r0
 1:
-    bl receive_char_usart2
+    bl usart2_receive_char
     strb r0, [r4], #1
 
     subs r1, #1
@@ -127,15 +127,15 @@ receive_string_usart2:
  * @param Address
  * @return None
 */
-.type   send_string_usart2 %function
-.global send_string_usart2
-send_string_usart2:
+.type   usart2_send_string %function
+.global usart2_send_string
+usart2_send_string:
     push { r4, lr }
 
     mov r4, r0
 1:
     ldrb r0, [r4], #1
-    bl send_char_usart2
+    bl usart2_send_char
     cmp r0, #0
     bne 1b
 
