@@ -8,6 +8,8 @@
 #ifndef STM32L476G_H_
 #define STM32L476G_H_
 
+#include <stdint.h>
+
 /*GPIO definitions*/
 #define GPIOA_BASE		0x48000000
 #define GPIOB_BASE		0x48000400
@@ -25,9 +27,6 @@
 #define GPIOE			((GPIO_TypeDef*) GPIOE_BASE)
 #define GPIOF			((GPIO_TypeDef*) GPIOF_BASE)
 #define GPIOG			((GPIO_TypeDef*) GPIOG_BASE)
-
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
 
 typedef struct
 {
@@ -82,5 +81,34 @@ typedef struct
 	volatile uint32_t CSR;
 } RCC_TypeDef;
 
+/*FPU definitions*/
+
+#define FPU_BASE		0xE000ED88
+#define FPU				((FPU_TypeDef*) FPU_BASE)
+
+typedef struct
+{
+	volatile uint32_t CPACR;
+	volatile uint32_t FPCCR;
+	volatile uint32_t FPCAR;
+	volatile uint32_t FPDSCR;
+	volatile uint32_t FPSCR;
+} FPU_TypeDef;
+
+#define FPU_ENABLE		FPU->CPACR |= 0x00F00000
+#define FPU_DISABLE		FPU->CPACR &= ~0x00F00000
+
+/*SysTick definitions*/
+
+#define STK_BASE		0xE000E010
+#define STK				((STK_TypeDef*)STK_BASE)
+
+typedef struct
+{
+	volatile uint32_t CTRL;
+	volatile uint32_t LOAD;
+	volatile uint32_t VAL;
+	volatile const uint32_t CALIB;
+} STK_TypeDef;
 
 #endif /* STM32L476G_H_ */

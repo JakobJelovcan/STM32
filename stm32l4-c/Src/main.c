@@ -17,6 +17,8 @@
  */
 
 #include <stdint.h>
+#include "stm32l476g.h"
+#include "systick.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
@@ -24,6 +26,12 @@
 
 int main(void)
 {
+	FPU_ENABLE;
+
+	stk_init();
+
+	stk_wait_ms(1000);
+
     /* Loop forever */
 	for(;;);
 }
