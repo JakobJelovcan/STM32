@@ -9,12 +9,12 @@
 #include "gpio.h"
 
 void gpio_init(GPIO_TypeDef* gpio, GPIO_InitTypeDef* init) {
-	uint32_t pos;
-	uint32_t temp;
+	uint32_t pos = 0;
+	uint32_t temp = 0;
 
 	while(init->Pin >> pos) {
 		if(init->Pin & (1 << pos)) {
-			if((init->Mode & MODE_MASK) == MODE_OUTPUT || (init->Mode & MODE_MASK) == MODE_ALTERNATE) {
+			if((init->Mode & GPIO_MODE_MASK) == MODE_OUTPUT || (init->Mode & GPIO_MODE_MASK) == MODE_ALTERNATE) {
 				temp = gpio->OSPEEDR;
 				temp &= ~(GPIO_SPEED_MASK << (pos << 1));
 				temp |= (init->Speed << (pos << 1));
@@ -22,19 +22,34 @@ void gpio_init(GPIO_TypeDef* gpio, GPIO_InitTypeDef* init) {
 
 				temp = gpio->OTYPER;
 				temp &= ~(GPIO_TYPE_MASK << pos);
-				temp |= (((init->Mode & OUTPUT_MASK) >> OUTPUT_POSITION) << pos);
+				temp |= (((init->Mode & GPIO_OUTPUT_MASK) >> OUTPUT_POSITION) << pos);
 				gpio->OTYPER = temp;
 			}
 
-			if((init->Mode & MODE_MASK) != MODE_ANALOG) {
+			if((init->Mode & GPIO_MODE_MASK) != MODE_ANALOG) {
 				temp = gpio->PUPDR;
 				temp &= ~(GPIO_PULL_MASK << (pos << 1));
 				temp |= ((init->Pull << (pos << 1)));
 				gpio->PUPDR = temp;
 			}
 
+			if((init->Mode & GPIO_MODE_MASK) == MODE_ALTERNATE) {
+				if(pos < 8) {
+					temp = gpio->AFR[0];
+					temp &= ~(GPIO_ALTERNATE_MASK << (pos << 2));
+					temp |= (init->Alternate << (pos << 2));
+					gpio->AFR[0] = temp;
+				}
+				else {
+					temp = gpio->AFR[1];
+					temp &= ~(GPIO_ALTERNATE_MASK << ((pos - 8) << 2));
+					temp |= (init->Alternate << ((pos - 8) << 2));
+					gpio->AFR[1] = temp;
+				}
+			}
+
 			temp = gpio->MODER;
-			temp &= ~(MODE_MASK << (pos << 1));
+			temp &= ~(GPIO_MODE_MASK << (pos << 1));
 			temp |= ((init->Mode << (pos << 1)));
 			gpio->MODER = temp;
 		}

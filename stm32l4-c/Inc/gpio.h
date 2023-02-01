@@ -28,14 +28,14 @@
 #define GPIO_PIN_15				(1 << 15)
 
 #define MODE_POSITION			0u
-#define MODE_MASK				(0x3u << MODE_POSITION)
+#define GPIO_MODE_MASK			(0x3u << MODE_POSITION)
 #define MODE_INPUT				(0x0u << MODE_POSITION)
 #define MODE_OUTPUT				(0x1u << MODE_POSITION)
 #define MODE_ALTERNATE			(0x2u << MODE_POSITION)
 #define MODE_ANALOG				(0x3u << MODE_POSITION)
 
 #define OUTPUT_POSITION	4u
-#define OUTPUT_MASK				(0x1u << OUTPUT_POSITION)
+#define GPIO_OUTPUT_MASK		(0x1u << OUTPUT_POSITION)
 #define OUTPUT_PP				(0x0u << OUTPUT_POSITION)
 #define OUTPUT_OD				(0x1u << OUTPUT_POSITION)
 

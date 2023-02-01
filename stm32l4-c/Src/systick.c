@@ -29,7 +29,7 @@ void stk_wait_ms(uint32_t ms) {
 	STK->LOAD = STK_MILLISECOND;
 	STK_ENABLE;
 	while(ms--) {
-		while(STK->CTRL & (1 << 16));
+		while(!(STK->CTRL & (1 << 16)));
 	}
 	STK_DISABLE;
 }

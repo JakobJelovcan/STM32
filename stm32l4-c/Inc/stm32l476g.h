@@ -58,24 +58,31 @@ typedef struct
 	volatile uint32_t CIER;
 	volatile uint32_t CIFR;
 	volatile uint32_t CICR;
+	uint32_t _PADDING1;
 	volatile uint32_t AHB1RSTR;
 	volatile uint32_t AHB2RSTR;
 	volatile uint32_t AHB3RSTR;
+	uint32_t _PADDING2;
 	volatile uint32_t APB1RSTR1;
 	volatile uint32_t APB1RSTR2;
 	volatile uint32_t APB2RSTR;
+	uint32_t _PADDING3;
 	volatile uint32_t AHB1ENR;
 	volatile uint32_t AHB2ENR;
 	volatile uint32_t AHB3ENR;
+	uint32_t _PADDING4;
 	volatile uint32_t APB1ENR1;
 	volatile uint32_t APB1ENR2;
 	volatile uint32_t APB2ENR;
+	uint32_t _PADDING5;
 	volatile uint32_t AHB1SMENR;
 	volatile uint32_t AHB2SMENR;
 	volatile uint32_t AHB3SMENR;
+	uint32_t _PADDING6;
 	volatile uint32_t APB1SMENR1;
 	volatile uint32_t APB1SMENR2;
 	volatile uint32_t APB2SMENR;
+	uint32_t _PADDING7;
 	volatile uint32_t CCIPR;
 	volatile uint32_t BDCR;
 	volatile uint32_t CSR;
@@ -110,5 +117,27 @@ typedef struct
 	volatile uint32_t VAL;
 	volatile const uint32_t CALIB;
 } STK_TypeDef;
+
+/*USART definitions*/
+#define USART2_BASE		0x40004400
+#define USART2			((USART_TypeDef*) USART2_BASE)
+
+typedef struct
+{
+	volatile uint32_t CR1;
+	volatile uint32_t CR2;
+	volatile uint32_t CR3;
+	volatile uint32_t BRR;
+	volatile uint32_t GTPR;
+	volatile uint32_t RTOR;
+	volatile uint32_t RQR;
+	volatile uint32_t ISR;
+	volatile uint32_t ICR;
+	volatile uint32_t RDR;
+	volatile uint32_t TDR;
+} USART_TypeDef;
+
+
+void stm32l476g_init();
 
 #endif /* STM32L476G_H_ */
