@@ -16,8 +16,8 @@
 #define	USART2_TX_PIN			GPIO_PIN_5
 #define USART2_RX_PIN			GPIO_PIN_6
 
-#define USART2_ENABLE			USART2->CR1 |= (1 << 0)
-#define USART2_DISABLE			USART2->CR1 &= ~(1 << 0)
+#define USART2_ENABLE()			USART2->CR1 |= (1 << 0)
+#define USART2_DISABLE()		USART2->CR1 &= ~(1 << 0)
 
 #define USART_RE_MASK			(1 << 2)
 #define USART_RE_ENABLE			(1 << 2)

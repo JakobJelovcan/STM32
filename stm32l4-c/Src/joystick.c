@@ -8,7 +8,7 @@
 #include "joystick.h"
 
 void joystick_init() {
-	RCC_GPIOA_CLK_ENABLE;
+	RCC_GPIOA_CLK_ENABLE();
 
 	GPIO_InitTypeDef init = {};
 	init.Pin = JOYSTICK_UP_PIN | JOYSTICK_DOWN_PIN | JOYSTICK_LEFT_PIN | JOYSTICK_RIGHT_PIN | JOYSTICK_CENTER_PIN;
@@ -17,7 +17,7 @@ void joystick_init() {
 	init.Speed = GPIO_SPEED_LOW;
 	init.Alternate = 0;
 
-	gpio_init(GPIOA, &init);
+	gpio_init(JOYSTICK_GPIO, &init);
 }
 
 GPIO_PIN_STATE	joystick_get_left_state() {

@@ -19,13 +19,24 @@
 #include <stdint.h>
 #include "stm32l476g.h"
 #include "systick.h"
+#include "joystick.h"
 #include "led.h"
 #include "usart.h"
+#include "lcd.h"
+#include "spi.h"
+#include "l3gd20.h"
 
 int main(void)
 {
 	stm32l476g_init();
+	SPI_InitTypeDef init = L3GD20_SPI_INIT;
+	spi2_init(&init);
 
-    /* Loop forever */
+	l3gd20_init();
+	L3GD20_CS_LOW();
+
+	uint8_t id = l3gd20_read(L3GD20_WHO_AM_I);
+
+	L3GD20_CS_HIGH();
 	for(;;);
 }

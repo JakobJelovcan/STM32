@@ -8,7 +8,7 @@
 #include "led.h"
 
 void led_red_init() {
-	RCC_GPIOB_CLK_ENABLE;
+	RCC_GPIOB_CLK_ENABLE();
 
 	GPIO_InitTypeDef init = {};
 	init.Mode = GPIO_MODE_OUTPUT_PP;
@@ -29,7 +29,7 @@ void led_red_off() {
 }
 
 void led_green_init() {
-	RCC_GPIOE_CLK_ENABLE;
+	RCC_GPIOE_CLK_ENABLE();
 
 	GPIO_InitTypeDef init = {};
 	init.Mode = GPIO_MODE_OUTPUT_PP;

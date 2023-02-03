@@ -8,8 +8,8 @@
 #include "usart.h"
 
 void usart2_init(USART_InitTypeDef* init) {
-	RCC_GPIOD_CLK_ENABLE;
-	RCC_USART2_CLK_ENABLE;
+	RCC_GPIOD_CLK_ENABLE();
+	RCC_USART2_CLK_ENABLE();
 
 	GPIO_InitTypeDef ioinit = {};
 	ioinit.Pin = (USART2_TX_PIN | USART2_RX_PIN);

@@ -8,6 +8,6 @@
 #include "stm32l476g.h"
 
 void stm32l476g_init() {
-	FPU_ENABLE;
+	fpu_enable();
 }
 

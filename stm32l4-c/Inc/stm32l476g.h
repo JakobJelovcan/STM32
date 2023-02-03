@@ -9,6 +9,10 @@
 #define STM32L476G_H_
 
 #include <stdint.h>
+#include "fpu.h"
+
+#define __DSB()			__asm("dsb")
+#define __ISB()			__asm("isb")
 
 /*GPIO definitions*/
 #define GPIOA_BASE		0x48000000
@@ -102,9 +106,6 @@ typedef struct
 	volatile uint32_t FPSCR;
 } FPU_TypeDef;
 
-#define FPU_ENABLE		FPU->CPACR |= 0x00F00000
-#define FPU_DISABLE		FPU->CPACR &= ~0x00F00000
-
 /*SysTick definitions*/
 
 #define STK_BASE		0xE000E010
@@ -137,6 +138,53 @@ typedef struct
 	volatile uint32_t TDR;
 } USART_TypeDef;
 
+/*LCD definitions*/
+#define LCD_BASE		0x40002400
+#define LCD				((LCD_TypeDef*) LCD_BASE)
+
+typedef struct
+{
+	volatile uint32_t CR;
+	volatile uint32_t FCR;
+	volatile uint32_t SR;
+	volatile uint32_t CLR;
+	uint32_t _BUFFER1;
+	volatile uint32_t COM_0;
+	volatile uint32_t COM_0_1;
+	volatile uint32_t COM_1;
+	volatile uint32_t COM_1_1;
+	volatile uint32_t COM_2;
+	volatile uint32_t COM_2_1;
+	volatile uint32_t COM_3;
+	volatile uint32_t COM_3_1;
+	volatile uint32_t COM_4;
+	volatile uint32_t COM_4_1;
+	volatile uint32_t COM_5;
+	volatile uint32_t COM_5_1;
+	volatile uint32_t COM_6;
+	volatile uint32_t COM_6_1;
+	volatile uint32_t COM_7;
+	volatile uint32_t COM_7_1;
+} LCD_TypeDef;
+
+/*SPI definitions*/
+#define SPI1_BASE		0x40013000
+#define SPI1			((SPI_TypeDef*) SPI1_BASE)
+#define SPI2_BASE		0x40003800
+#define SPI2			((SPI_TypeDef*) SPI2_BASE)
+#define SPI3_BASE		0x40003C00
+#define SPI3			((SPI_TypeDef*) SPI3_BASE)
+
+typedef struct
+{
+	volatile uint32_t CR1;
+	volatile uint32_t CR2;
+	volatile uint32_t SR;
+	volatile uint32_t DR;
+	volatile uint32_t CRCPR;
+	volatile uint32_t RXCRCR;
+	volatile uint32_t TXCRCR;
+} SPI_TypeDef;
 
 void stm32l476g_init();
 
