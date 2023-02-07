@@ -148,7 +148,7 @@ typedef struct
 	volatile uint32_t FCR;
 	volatile uint32_t SR;
 	volatile uint32_t CLR;
-	uint32_t _BUFFER1;
+	uint32_t RESERVED1;
 	volatile uint32_t COM_0;
 	volatile uint32_t COM_0_1;
 	volatile uint32_t COM_1;

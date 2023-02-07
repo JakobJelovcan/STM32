@@ -50,19 +50,19 @@
 #define SPI_DIRECTION_2_LINES_RXONLY	SPI_RXONLY_MASK
 #define SPI_DIRECTION_1_LINE			SPI_BIDIMODE
 
-#define SPI_DATASIZE_4_BIT				(0b0011 << 8)
-#define SPI_DATASIZE_5_BIT				(0b0100 << 8)
-#define SPI_DATASIZE_6_BIT				(0b0101 << 8)
-#define SPI_DATASIZE_7_BIT				(0b0110 << 8)
-#define SPI_DATASIZE_8_BIT				(0b0111 << 8)
-#define SPI_DATASIZE_9_BIT				(0b1000 << 8)
-#define SPI_DATASIZE_10_BIT				(0b1001 << 8)
-#define SPI_DATASIZE_11_BIT				(0b1010 << 8)
-#define SPI_DATASIZE_12_BIT				(0b1011 << 8)
-#define SPI_DATASIZE_13_BIT				(0b1100 << 8)
-#define SPI_DATASIZE_14_BIT				(0b1101 << 8)
-#define SPI_DATASIZE_15_BIT				(0b1110 << 8)
-#define SPI_DATASIZE_16_BIT				(0b1111 << 8)
+#define SPI_DS_4_BIT					(0b0011 << 8)
+#define SPI_DS_5_BIT					(0b0100 << 8)
+#define SPI_DS_6_BIT					(0b0101 << 8)
+#define SPI_DS_7_BIT					(0b0110 << 8)
+#define SPI_DS_8_BIT					(0b0111 << 8)
+#define SPI_DS_9_BIT					(0b1000 << 8)
+#define SPI_DS_10_BIT					(0b1001 << 8)
+#define SPI_DS_11_BIT					(0b1010 << 8)
+#define SPI_DS_12_BIT					(0b1011 << 8)
+#define SPI_DS_13_BIT					(0b1100 << 8)
+#define SPI_DS_14_BIT					(0b1101 << 8)
+#define SPI_DS_15_BIT					(0b1110 << 8)
+#define SPI_DS_16_BIT					(0b1111 << 8)
 
 #define SPI_POLARITY_LOW				0x00
 #define SPI_POLARITY_HIGH				SPI_CPOL_MASK
@@ -106,29 +106,35 @@
 #define SPI_IT_RXNE						SPI_RXNEIE_MASK
 #define SPI_IT_ERR						SPI_ERRIE_MASK
 
-#define SPI2_ENABLE()					SPI2->CR1 |= (1 << 6)
-#define SPI2_DISABLE()					SPI2->CR1 &= ~(1 << 6)
+#define SPI2_ENABLE()					SPI2->CR1 |= SPI_SPE_MASK
+#define SPI2_DISABLE()					SPI2->CR1 &= ~SPI_SPE_MASK
+
+#define SPI2_SET_DIRECTION_2_LINES		SPI2->CR1 &= ~(SPI_RXONLY_MASK | SPI_BIDIMODE_MASK | SPI_BIDIOE_MASK)
+#define SPI2_SET_DIRECTION_2_LINES_RX	SPI2->CR1 = (SPI2->CR1 & ~(SPI_BIDIMODE_MASK | SPI_BIDIOE_MASK)) | SPI_RXONLY_MASK
+
+#define SPI2_SET_DIRECTION_1_LINE_TX	SPI2->CR1 = (SPI2->CR1 & ~(SPI_RXONLY_MASK)) | SPI_BIDIMODE_MASK | SPI_BIDIOE_MASK;
+#define SPI2_SET_DIRECTION_1_LINE_RX	SPI2->CR1 = (SPI2->CR1 & ~(SPI_RXONLY_MASK | SPI_BIDIOE_MASK)) | SPI_BIDIMODE_MASK;
 
 #define SPI2_GPIO						GPIOD
 #define SPI2_GPIO_PINS					(GPIO_PIN_1 | GPIO_PIN_3 | GPIO_PIN_4)
 
 typedef struct
 {
-	uint32_t Mode;
-	uint32_t Direction;
-	uint32_t DataSize;
-	uint32_t ClockPolarity;
-	uint32_t ClockPhase;
-	uint32_t NSS;
-	uint32_t BRP;
-	uint32_t FirstBit;
-	uint32_t TIMode;
-	uint32_t NSSPMode;
+	uint16_t Mode;
+	uint16_t Direction;
+	uint16_t DataSize;
+	uint16_t ClockPolarity;
+	uint16_t ClockPhase;
+	uint16_t NSS;
+	uint16_t BRP;
+	uint16_t FirstBit;
+	uint16_t TIMode;
+	uint16_t NSSPMode;
 } SPI_InitTypeDef;
 
 void spi2_init(SPI_InitTypeDef*);
-void spi2_write(uint8_t);
-uint8_t spi2_read();
-uint8_t  spi2_write_read(uint8_t);
+void spi2_transmit(uint8_t);
+uint8_t spi2_receive();
+uint8_t spi2_transmit_receive(uint8_t);
 
 #endif /* SPI_H_ */

@@ -49,23 +49,24 @@ void spi2_init(SPI_InitTypeDef* init) {
 			(init->TIMode & SPI_FRF_MASK) |
 			(init->NSSPMode & SPI_NSSP_MASK) |
 			(init->DataSize & SPI_DS_MASK) |
-			(init->DataSize > SPI_DATASIZE_8_BIT) ? (SPI_RXFIFO_THRESHOLD_HF & SPI_FRXTH_MASK) : (SPI_RXFIFO_THRESHOLD_QF & SPI_FRXTH_MASK);
+			((init->DataSize > SPI_DS_8_BIT) ? (SPI_RXFIFO_THRESHOLD_HF & SPI_FRXTH_MASK) : (SPI_RXFIFO_THRESHOLD_QF & SPI_FRXTH_MASK));
 	SPI2->CR2 = temp;
 }
 
-void spi2_write(uint8_t data) {
+void spi2_transmit(uint8_t data) {
 	SPI2_ENABLE();
 
 	while(!(SPI2->SR & (1 << 1)));
 
-	SPI2->SR = data;
+	//*(volatile uint8_t*)&SPI2->DR = data;
+	SPI2->DR = data;
 
 	while(SPI2->SR & (1 << 7));
 
 	SPI2_DISABLE();
 }
 
-uint8_t spi2_read() {
+uint8_t spi2_receive() {
 	SPI2_ENABLE();
 
 	__DSB();
@@ -81,21 +82,21 @@ uint8_t spi2_read() {
 
 	while(!(SPI2->SR & (1 << 0)));
 
-	uint8_t data = (uint8_t)(SPI2->DR >> 8);
+	uint8_t data = *(uint8_t*)&SPI2->DR;
 
 	while(SPI2->SR & (1 << 7));
 
 	return data;
 }
 
-uint8_t  spi2_write_read(uint8_t data) {
+uint8_t  spi2_transmit_receive(uint8_t data) {
 	SPI2_ENABLE();
 
 	while(!(SPI2->SR & (1 << 1)));
-	SPI2->DR = data;
+	*(uint8_t*)&SPI2->DR = data;
 
 	while(!(SPI2->SR & (1 << 0)));
-	data = (uint8_t)(SPI2->DR >> 8);
+	data = *(volatile uint8_t*)&SPI2->DR;
 
 	while(SPI2->SR & (0b11 << 11));
 	while(SPI2->SR & (1 << 7));

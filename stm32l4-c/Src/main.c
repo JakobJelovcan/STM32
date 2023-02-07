@@ -17,6 +17,8 @@
  */
 
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 #include "stm32l476g.h"
 #include "systick.h"
 #include "joystick.h"
@@ -24,19 +26,46 @@
 #include "usart.h"
 #include "lcd.h"
 #include "spi.h"
-#include "l3gd20.h"
+#include "gyro.h"
 
 int main(void)
 {
 	stm32l476g_init();
-	SPI_InitTypeDef init = L3GD20_SPI_INIT;
-	spi2_init(&init);
+	SPI_InitTypeDef spi_init = L3GD20_SPI_INIT;
+	spi2_init(&spi_init);
 
-	l3gd20_init();
-	L3GD20_CS_LOW();
+	USART_InitTypeDef usart_init = { 0x22 };
+	usart2_init(&usart_init);
+	USART2_ENABLE();
 
-	uint8_t id = l3gd20_read(L3GD20_WHO_AM_I);
+	LCD_InitTypeDef init = {};
+	init.Prescaler = LCD_PS_16;
+	init.ClockDivider = LCD_DIV_17;
+	init.BlinkMode = LCD_BLINK_0;
+	init.BlinkFrequency = LCD_BLINKF_8;
+	init.Contrast = LCD_CC_3;
+	init.DeadTime = LCD_DEAD_0;
+	init.PulseOnDuration = LCD_PON_0;
+	lcd_init(&init);
 
-	L3GD20_CS_HIGH();
+	gyro_init();
+
+	float xyz[3];
+	int temp;
+	char str_temp[6];
+	char str_xyz[50];
+	for(;;) {
+		l3gd20_read_xyz(xyz);
+
+		sprintf(str_xyz, "X: %f Y: %f Z: %f\n\r", xyz[0], xyz[1], xyz[2]);
+		usart2_send_string(str_xyz);
+
+		temp = l3gd20_read_temp();
+		sprintf(str_temp, "%d\n\r", temp);
+		lcd_display_string(str_temp);
+		stk_wait_ms(50);
+	}
+
+
 	for(;;);
 }
