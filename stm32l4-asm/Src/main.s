@@ -14,13 +14,22 @@ string: .space 128
 main:
     bl fpu_enable
 
-    vmov s0, #1.75
-    vmov s1, #1.5
+    bl spi2_init
 
-    vadd.f32 s0, s1
+    bl l3gd20_init
 
-    vcvt.u32.f32 s2, s0
+    bl l3gd20_read_id
 
+    bl l3gd20_read_temp
 
-    vmov r0, s2
+    mov fp, sp
+
+    sub sp, #12
+
+    mov r0, sp
+
+    bl l3gd20_read_xyz
+
+    ldr r0, [sp]
+
 __end: b __end

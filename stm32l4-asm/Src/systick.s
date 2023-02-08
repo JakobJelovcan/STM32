@@ -1,6 +1,6 @@
 .syntax unified
 .cpu cortex-m4
-.fpu softvfp
+.fpu vfpv4
 .thumb
 
 .equ    STK_BASE,       0xE000E010

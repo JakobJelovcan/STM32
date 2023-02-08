@@ -1,6 +1,6 @@
 .syntax unified
 .cpu cortex-m4
-.fpu softvfp
+.fpu vfpv4
 .thumb
 
 .equ RCC_BASE,            0x40021000

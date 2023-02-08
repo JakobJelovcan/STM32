@@ -1,6 +1,6 @@
 .syntax unified
 .cpu cortex-m4
-.fpu softvfp
+.fpu vfpv4
 .thumb
 
 .equ    FPU_BASE,   0xE000ED88
@@ -36,5 +36,8 @@ fpu_disable:
     ldr r5, [r4, #CPACR]
     bic r5, #(0b1111 << 20)
     str r5, [r4, #CPACR]
+
+    dsb
+    isb
 
     pop { r4, r5, pc }
