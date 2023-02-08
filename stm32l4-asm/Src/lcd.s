@@ -1,6 +1,6 @@
 .syntax unified
 .cpu cortex-m4
-.fpu softvfp
+.fpu vfpv4
 .thumb
 
 .equ GPIOA_BASE,                    0x48000000
@@ -181,10 +181,10 @@
 .equ GPIOD_PINS,                    (GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | \
                                     GPIO_PIN_14 | GPIO_PIN_15)
 
-.equ ALTERNATE_MODE_PP,             0x02
-.equ NO_PULL_UP_DOWN,               0x00
-.equ ALTERNATE_FUNCTION_11,         0x0B
-.equ VERY_FAST_OUTPUT_SPEED,        0x03
+.equ GPIO_ALTERNATE_MODE_PP,        0x02
+.equ GPIO_NO_PULL,                  0x00
+.equ GPIO_AF_11,                    0x0B
+.equ GPIO_SPEED_VERY_HIGH,          0x03
 
 .equ LCD_DOT,                       0x0002
 .equ LCD_DOUBLE_DOT,                0x0020
@@ -237,11 +237,11 @@ lcd_init:
     bl rcc_gpioc_clk_enable
     bl rcc_gpiod_clk_enable
 
-    ldr r2, =ALTERNATE_MODE_PP          //Mode
-    ldr r3, =NO_PULL_UP_DOWN            //Pullup/down
-    ldr r4, =ALTERNATE_FUNCTION_11      //Alternate function
+    ldr r2, =GPIO_ALTERNATE_MODE_PP     //Mode
+    ldr r3, =GPIO_NO_PULL               //Pullup/down
+    ldr r4, =GPIO_AF_11                 //Alternate function
     str r4, [sp, #-4]!                  //Store on stack
-    ldr r4, =VERY_FAST_OUTPUT_SPEED     //Output speed
+    ldr r4, =GPIO_SPEED_VERY_HIGH       //Output speed
     str r4, [sp, #-4]!                  //Store on stack
 
     //Initialize GPIO A

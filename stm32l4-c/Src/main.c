@@ -34,19 +34,7 @@ int main(void)
 	SPI_InitTypeDef spi_init = L3GD20_SPI_INIT;
 	spi2_init(&spi_init);
 
-	USART_InitTypeDef usart_init = { 0x22 };
-	usart2_init(&usart_init);
-	USART2_ENABLE();
 
-	LCD_InitTypeDef init = {};
-	init.Prescaler = LCD_PS_16;
-	init.ClockDivider = LCD_DIV_17;
-	init.BlinkMode = LCD_BLINK_0;
-	init.BlinkFrequency = LCD_BLINKF_8;
-	init.Contrast = LCD_CC_3;
-	init.DeadTime = LCD_DEAD_0;
-	init.PulseOnDuration = LCD_PON_0;
-	lcd_init(&init);
 
 	gyro_init();
 

@@ -1,6 +1,6 @@
 .syntax unified
 .cpu cortex-m4
-.fpu softvfp
+.fpu vfpv4
 .thumb
 
 .equ    GPIOA_BASE,     0x48000000
@@ -18,7 +18,7 @@
 .equ    GPIOx_PUPDR,    0x0C
 .equ    GPIOx_IDR,      0x10
 .equ    GPIOx_ODR,      0x14
-.equ    GPIOx_BSSR,     0x18
+.equ    GPIOx_BSRR,     0x18
 .equ    GPIOx_LCKR,     0x1C
 .equ    GPIOx_AFRL,     0x20
 .equ    GPIOx_AFRH,     0x24
@@ -157,8 +157,8 @@ gpio_write_pin:
 
     tst r2, #1
     ITEE ne
-    strne r1, [r0, #GPIOx_BSSR]
+    strne r1, [r0, #GPIOx_BSRR]
     lsleq r1, #15
-    streq r1, [r0, #GPIOx_BSSR]
+    streq r1, [r0, #GPIOx_BSRR]
 
     pop { pc }
