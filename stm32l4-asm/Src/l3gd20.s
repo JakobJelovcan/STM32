@@ -139,6 +139,7 @@ l3gd20_write:
     orrgt r4, L3GD20_MULTI_COMMAND
 
     bl l3gd20_cs_low    //Select L3GD20
+    bl spi2_direction_2_lines
 
     //Transmit write address to L3GD20
     mov r0, r4
@@ -172,6 +173,7 @@ l3gd20_read:
     orrgt r4, L3GD20_MULTI_COMMAND
 
     bl l3gd20_cs_low    //Select L3GD20
+    bl spi2_direction_2_lines
 
     //Transmit read address from L3GD20
     mov r0, r4
@@ -375,6 +377,8 @@ l3gd20_activate:
     ldr r2, =0x01
     bl l3gd20_write
 
+    mov sp, fp
+
     pop { r4, fp, pc }
 
 .type   l3gd20_powerdown, %function
@@ -398,5 +402,7 @@ l3gd20_powerdown:
     sub r1, fp, #4
     ldr r2, =0x01
     bl l3gd20_write
+
+    mov sp, fp
 
     pop { r4, fp, pc }

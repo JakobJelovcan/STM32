@@ -268,3 +268,66 @@ spi2_transmit_receive:
     bl spi2_disable
 
     pop { r4, r5, pc }
+
+
+.type   spi2_transmit, %function
+.global spi2_transmit
+spi2_transmit:
+    push { r4, r5, lr }
+
+    bl spi2_enable
+
+    ldr r4, =SPI2_BASE
+
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, SPIx_TXE_MASK
+    beq 1b
+
+    strb r0, [r4, #SPIx_DR]
+
+1:  ldr r5, [r4, #SPIx_SR]
+    ands r5, SPIx_FTLVL_MASK
+    bne 1b
+
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, SPIx_BSY_MASK
+    bne 1b
+
+    bl spi2_disable
+
+    pop { r4, r5, pc }
+
+.type   spi2_receive, %function
+.global spi2_receive
+spi2_receive:
+    push { r4, r5, lr }
+
+    bl spi2_enable
+
+    dsb
+    dsb
+    dsb
+    dsb
+    dsb
+    dsb
+    dsb
+    dsb
+
+    bl spi2_disable
+
+    ldr r4, =SPI2_BASE
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, SPIx_RXNE_MASK
+    beq 1b
+
+    ldrb r0, [r4, #SPIx_DR]
+
+1:  ldr r5, [r4, #SPIx_SR]
+    ands r5, SPIx_FRLVL_MASK
+    bne 1b
+
+1:  ldr r5, [r4, #SPIx_SR]
+    tst r5, SPIx_BSY_MASK
+    bne 1b
+
+    pop { r4, r5, pc }
