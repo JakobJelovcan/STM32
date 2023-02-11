@@ -102,7 +102,7 @@
 .equ L3GD20_HPCF_16,        (0b1111 << 0)
 
 .equ L3GD20_BDU_MASK,       (1 << 7)
-.equ L3GD20_BDU_CONTINUOS,  0x00
+.equ L3GD20_BDU_CONTINUOUS, 0x00
 .equ L3GD20_BDU_ON_READ,    (1 << 7)
 
 .equ L3GD20_BLE_MASK,       (1 << 6)
@@ -247,7 +247,7 @@ l3gd20_init:
 
 
     //Write to register L3GD20_CTRL_REG4
-    ldr r4, =(L3GD20_BDU_CONTINUOS | L3GD20_BLE_LITTLE | L3GD20_FS_500)
+    ldr r4, =(L3GD20_BDU_CONTINUOUS | L3GD20_BLE_LITTLE | L3GD20_FS_500)
     str r4, [fp, #-4]
     ldr r0, =L3GD20_CTRL_REG4
     sub r1, fp, #4

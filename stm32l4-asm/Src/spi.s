@@ -286,10 +286,6 @@ spi2_transmit:
     strb r0, [r4, #SPIx_DR]
 
 1:  ldr r5, [r4, #SPIx_SR]
-    ands r5, SPIx_FTLVL_MASK
-    bne 1b
-
-1:  ldr r5, [r4, #SPIx_SR]
     tst r5, SPIx_BSY_MASK
     bne 1b
 
@@ -304,27 +300,24 @@ spi2_receive:
 
     bl spi2_enable
 
-    dsb
-    dsb
-    dsb
-    dsb
-    dsb
-    dsb
-    dsb
-    dsb
+    dsb sy
+    dsb sy
+    dsb sy
+    dsb sy
+    dsb sy
+    dsb sy
+    dsb sy
+    dsb sy
 
     bl spi2_disable
 
     ldr r4, =SPI2_BASE
+
 1:  ldr r5, [r4, #SPIx_SR]
     tst r5, SPIx_RXNE_MASK
     beq 1b
 
     ldrb r0, [r4, #SPIx_DR]
-
-1:  ldr r5, [r4, #SPIx_SR]
-    ands r5, SPIx_FRLVL_MASK
-    bne 1b
 
 1:  ldr r5, [r4, #SPIx_SR]
     tst r5, SPIx_BSY_MASK
