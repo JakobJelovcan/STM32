@@ -233,6 +233,8 @@
 #define LCD_DOUBLE_DOT						0x20
 #define LCD_EMPTY							0x00
 
+#define LCD_MINUS							0xA000
+
 #define LCD_ENABLE()						LCD->CR |= 1
 #define LCD_DISABLE()						LCD->CR &= ~1
 

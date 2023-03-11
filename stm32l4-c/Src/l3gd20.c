@@ -103,12 +103,12 @@ void l3gd20_read_xyz(float* xyz) {
 		}
 	}
 	for(int i = 0; i < 3; ++i) {
-		xyz[i] = ((int16_t*)raw_data)[i] / sensitivity;
+		xyz[i] = ((int16_t*)raw_data)[i] * sensitivity;
 	}
 }
 
 int8_t l3gd20_read_temp() {
 	uint8_t temp;
 	l3gd20_read(L3GD20_OUT_TEMP, &temp, 1);
-	return (int8_t)temp;
+	return 47 - (int8_t)temp;
 }

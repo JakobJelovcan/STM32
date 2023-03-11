@@ -34,26 +34,78 @@ int main(void)
 	SPI_InitTypeDef spi_init = L3GD20_SPI_INIT;
 	spi2_init(&spi_init);
 
+	LCD_InitTypeDef init = {};
+	init.Prescaler = LCD_PS_16;
+	init.ClockDivider = LCD_DIV_17;
+	init.BlinkMode = LCD_BLINK_0;
+	init.BlinkFrequency = LCD_BLINKF_8;
+	init.Contrast = LCD_CC_3;
+	init.DeadTime = LCD_DEAD_0;
+	init.PulseOnDuration = LCD_PON_0;
 
+	lcd_init(&init);
+	LCD_ENABLE();
+
+	USART_InitTypeDef usart_init = { 34 };
+	usart2_init(&usart_init);
+	USART2_ENABLE();
+
+	joystick_init();
 
 	gyro_init();
 
-	float xyz[3];
-	int temp;
-	char str_temp[6];
-	char str_xyz[50];
+	uint8_t display_state = 0;
+	uint8_t c = 0;
+
+	float xyz[3];		//Array for storing angular data
+	int temp = 0;		//Temperature
+
+	char str_display[10];
 	for(;;) {
-		l3gd20_read_xyz(xyz);
+		if(c == 0)
+		{
+			l3gd20_read_xyz(xyz);
+			temp = l3gd20_read_temp();
+			c = 0;
+		}
+		c = (c + 1) % 6;
 
-		sprintf(str_xyz, "X: %f Y: %f Z: %f\n\r", xyz[0], xyz[1], xyz[2]);
-		usart2_send_string(str_xyz);
+		if(joystick_get_up_state())
+		{
+			display_state = (display_state + 3) % 4;
+		}
+		else if(joystick_get_down_state())
+		{
+			display_state = (display_state + 5) % 4;
+		}
 
-		temp = l3gd20_read_temp();
-		sprintf(str_temp, "%d\n\r", temp);
-		lcd_display_string(str_temp);
-		stk_wait_ms(50);
+		switch(display_state)
+		{
+			case 0:
+			{
+				sprintf(str_display, "%dc", temp);
+				lcd_display_string(str_display);
+				break;
+			}
+			case 1:
+			{
+				sprintf(str_display, "X:%-6.3f", xyz[0]);
+				lcd_display_string(str_display);
+				break;
+			}
+			case 2:
+			{
+				sprintf(str_display, "Y:%-6.3f", xyz[1]);
+				lcd_display_string(str_display);
+				break;
+			}
+			case 3:
+			{
+				sprintf(str_display, "Z:%-6.3f", xyz[2]);
+				lcd_display_string(str_display);
+				break;
+			}
+		}
+		stk_wait_ms(15);
 	}
-
-
-	for(;;);
 }

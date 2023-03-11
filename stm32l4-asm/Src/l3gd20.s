@@ -317,19 +317,19 @@ l3gd20_read_xyz:
     teq r4, L3GD20_FS_250
     bne 1f
 
-    vldr.f32 s1, =0x410c0000    //8.75f
+    vldr.f32 s1, =0x3c0f5c29    //0.00875f
     b 2f
 1:
     teq r4, L3GD20_FS_500
     bne 1f
 
-    vldr.f32 s1, =0x418c6666    //17.55f
+    vldr.f32 s1, =0x3c8fc505    //0.01755f
     b 2f
 1:
     teq r4, L3GD20_FS_2000
     bne 2f
 
-    vldr.f32 s1, =0x428c0000    //70.00f
+    vldr.f32 s1, =0x3d8f5c29    //0.07f
 2:
 
     //Load raw data from the sensor
@@ -344,7 +344,7 @@ l3gd20_read_xyz:
 1:  ldrsh r6, [r5], #2
     vmov.s32 s0, r6
     vcvt.f32.s32 s0, s0
-    vdiv.f32 s0, s0, s1
+    vmul.f32 s0, s0, s1
     vstr.f32 s0, [r7]
     add r7, #4
 

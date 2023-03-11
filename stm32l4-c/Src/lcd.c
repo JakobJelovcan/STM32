@@ -38,6 +38,7 @@ uint16_t lcd_convert_char(char chr, uint32_t dot, uint32_t double_dot) {
 	uint16_t chr_code;
 	if(isdigit(chr)) chr_code = digits[chr - 48];
 	else if(isalpha(chr)) chr_code = letters[toupper(chr) - 65];
+	else if(chr == '-') chr_code = LCD_MINUS;
 	else chr_code = LCD_EMPTY;
 	if(dot) chr_code |= LCD_DOT;
 	if(double_dot) chr_code |= LCD_DOUBLE_DOT;
@@ -406,10 +407,35 @@ void lcd_clear_bar(uint8_t bars) {
 
 void lcd_display_string(char* str) {
 	lcd_wait_update_display_request();
-	for(uint8_t i = 1; i <= 6; ++i) {
-		if(*str) lcd_write_char(i, *str, 0, 0);
+	uint8_t i;
+	for(i = 1; i <= 6; ++i) {
+		if(*str){
+			uint32_t dot = 0;
+			uint32_t double_dot = 0;
+			char chr = *str;
+			switch(*(str + 1))
+			{
+				case '.':
+				{
+					dot = 1;
+					++str;
+					break;
+				}
+				case ':':
+				{
+					double_dot = 1;
+					++str;
+					break;
+				}
+			}
+			lcd_write_char(i, chr, dot, double_dot);
+		}
 		else break;
 		++str;
+	}
+	for(; i <= 6; ++i)
+	{
+		lcd_write_char(i, ' ', 0, 0);
 	}
 	lcd_enable_update_display_request();
 }
