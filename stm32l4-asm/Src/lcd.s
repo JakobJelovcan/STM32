@@ -189,6 +189,7 @@
 .equ LCD_DOT,                       0x0002
 .equ LCD_DOUBLE_DOT,                0x0020
 .equ LCD_EMPTY,                     0x0000
+.equ LCD_MINUS,                     0xA000
 
 .data
 .type    capital_letters, %object
@@ -748,15 +749,15 @@ lcd_clear_bar:
 .type   lcd_display_string, %function
 .global lcd_display_string
 lcd_display_string:
-    push { r4, r5, lr }
+    push { r4, r5, r6, lr }
 
     bl lcd_wait_update_display_request
 
     mov r4, r0
-    mov r3, #0          //Double dot
-    mov r2, #0          //Dot
     mov r5, #0          //Position
 1:
+    mov r3, #0          //Double dot
+    mov r2, #0          //Dot
     ldrb r1, [r4], #1   //Load next character
     add r5, #1          //Increment position
     mov r0, r5
@@ -766,13 +767,27 @@ lcd_display_string:
     cmp r1, #0
     beq 2f              //End of string
 
+    ldrb r6, [r4, #1]   //Load next character
+
+    //If next character is '.' set r2 to 1 and increment r4
+    cmp r6, #0x2E
+    ITT eq
+    moveq r2, #1
+    addeq r4, #1
+
+    //If next character is ':' set r3 to 1 and increnemt r4
+    cmp r6, #0x3A
+    ITT eq
+    moveq r3, #1
+    addeq r4, #1
+
     bl lcd_write_char   //Write character to lcd ram
     b 1b
 2:
 
     bl lcd_enable_update_display_request
 
-    pop { r4, r5, pc }
+    pop { r4, r5, r6, pc }
 
 
 /**
@@ -877,6 +892,11 @@ convert_char:
     ldr r4, =numbers
     ldrh r0, [r4, r0, lsl #1]
 
+    b 3f
+2:
+    cmp r5, #0x2D
+    bne 2f                  //If character is not '-'
+    ldr r0, =LCD_MINUS
     b 3f
 2:
     ldr r0, =LCD_EMPTY      //If character is neither digit or letter use empty

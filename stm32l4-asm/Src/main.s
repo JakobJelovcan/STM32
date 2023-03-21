@@ -4,7 +4,12 @@
 .thumb
 
 .data
-string: .space 128
+display_str_buffer: .space 10
+temp_out_string:    .asciz "%dC"
+out_string_x:       .asciz "X:%-6.3f"
+out_string_y:       .asciz "Y:%-6.3f"
+out_string_z:       .asciz "Z:%-6.3f"
+
 .align
 .text
 
