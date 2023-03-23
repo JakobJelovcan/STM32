@@ -28,9 +28,16 @@
 #include "spi.h"
 #include "gyro.h"
 
+char* out_str_x = "X:%-6.3f";
+char display_str_buffer[10];
+float gyro_data[3];
+
 int main(void)
 {
 	stm32l476g_init();
+	gyro_data[0] = 1.0f;
+
+	sprintf(display_str_buffer, out_str_x, gyro_data[0]);
 	SPI_InitTypeDef spi_init = L3GD20_SPI_INIT;
 	spi2_init(&spi_init);
 

@@ -24,8 +24,6 @@
 
 .equ GPIOx_MODER,                   0x00
 .equ GPIOx_OTYPER,          		0x04
-.equ GPIOx_OSPEEDR,         		0x08
-.equ GPIOx_PUPDR,           		0x0C
 .equ GPIOx_IDR,             		0x10
 .equ GPIOx_ODR,             		0x14
 .equ GPIOx_BSRR,            		0x18
@@ -126,10 +124,6 @@
 .equ LSM303C_FS_2G_A,               (0b00 << 4)
 .equ LSM303C_FS_4G_A,               (0b10 << 4)
 .equ LSM303C_FS_8G_A,               (0b11 << 4)
-
-.equ LSM303C_SENSITIVITY_2G_A,      1
-.equ LSM303C_SENSITIVITY_4G_A,      2
-.equ LSM303C_SENSITIVITY_8G_A,      4
 
 .equ LSM303C_BW_SCALE_ODR_MASK_A,   (1 << 3)
 .equ LSM303C_BW_SCALE_ODR_MANUAL_A, (1 << 3)
@@ -511,11 +505,11 @@ lsm303c_read_temp_m:
 .type   lsm303c_read_xyz_a, %function
 .global lsm303c_read_xyz_a
 lsm303c_read_xyz_a:
-    push { r4, r5, r6, r7, fp, lr }
+    push { r4, r5, r6, fp, lr }
 
     mov sp, fp
     sub sp, #8
-    mov r7, r0
+    mov r6, r0
 
     ldr r0, =LSM303C_CTRL_REG4_A
     bl lsm303c_read_a
@@ -523,19 +517,19 @@ lsm303c_read_xyz_a:
 
     cmp r0, LSM303C_FS_2G_A
     bne 1f
-    ldr r5, =LSM303C_SENSITIVITY_2G_A
+    vldr.f32 s1, =0x387fda40
     b 2f
 1:
     cmp r0, LSM303C_FS_4G_A
     bne 1f
-    ldr r5, =LSM303C_SENSITIVITY_4G_A
+    vldr.f32 s1, =0x38ffda40
     b 2f
 1:
     cmp r0, LSM303C_FS_8G_A
     bne 2f
-    ldr r5, =LSM303C_SENSITIVITY_8G_A
+    vldr.f32 s1, =0x397fda40
 2:
-
+    //Read data from the sensor
     ldr r0, =LSM303C_OUT_X_L_A
     bl lsm303c_read_a
     strb r0, [fp, #-8]
@@ -561,44 +555,72 @@ lsm303c_read_xyz_a:
     strb r0, [fp, #-3]
 
     sub r4, fp, #8
-    ldr r6, =0x03
+    ldr r5, =0x03
+    //Multiply the data with the sensitivity factor
 1:  ldrsh r0, [r4], #1
-    mul r0, r0, r5
-    str r0, [r4], #4
+    vmov.s32 s0, r0
+    vcvt.s32.f32 s0, s0
+    vmul.f32 s0, s0, s1
+    vstr.f32 s0, [r6]
+    add r6, #4
+
+    subs r5, #1
+    bne 1b
 
     mov sp, fp
 
-    pop { r4, r5, r6, r7, fp, pc }
+    pop { r4, r5, r6, fp, pc }
 
 .type   lsm303c_read_xyz_m, %function
 .global lsm303c_read_xyz_m
 lsm303c_read_xyz_m:
-    push { r4, lr }
+push { r4, r5, r6, fp, lr }
 
-    mov r4, r0
+    mov sp, fp
+    sub sp, #8
+    mov r6, r0
 
+    vldr.f32 s1, =0x3a180b24
+
+    //Read data from the sensor
     ldr r0, =LSM303C_OUT_X_L_M
     bl lsm303c_read_m
-    strb r0, [r4], #1
+    strb r0, [fp, #-8]
 
     ldr r0, =LSM303C_OUT_X_H_M
     bl lsm303c_read_m
-    strb r0, [r4], #1
+    strb r0, [fp, #-7]
 
     ldr r0, =LSM303C_OUT_Y_L_M
     bl lsm303c_read_m
-    strb r0, [r4], #1
+    strb r0, [fp, #-6]
 
     ldr r0, =LSM303C_OUT_Y_H_M
     bl lsm303c_read_m
-    strb r0, [r4], #1
+    strb r0, [fp, #-5]
 
     ldr r0, =LSM303C_OUT_Z_L_M
     bl lsm303c_read_m
-    strb r0, [r4], #1
+    strb r0, [fp, #-4]
 
     ldr r0, =LSM303C_OUT_Z_H_M
     bl lsm303c_read_m
-    strb r0, [r4], #1
+    strb r0, [fp, #-3]
 
-    pop { r4, pc }
+    sub r4, fp, #8
+    ldr r5, =0x03
+
+    //Multiply the data with the sensitivity factor
+1:  ldrsh r0, [r4], #1
+    vmov.s32 s0, r0
+    vcvt.s32.f32 s0, s0
+    vmul.f32 s0, s0, s1
+    vstr.f32 s0, [r6]
+    add r6, #4
+
+    subs r5, #1
+    bne 1b
+
+    mov sp, fp
+
+    pop { r4, r5, r6, fp, pc }

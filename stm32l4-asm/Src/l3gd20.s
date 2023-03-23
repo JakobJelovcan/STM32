@@ -111,8 +111,8 @@
 
 .equ L3GD20_FS_MASK,        (0b11 << 4)
 .equ L3GD20_FS_250,         (0b00 << 4)
-.equ L3GD20_FS_500,         (0b00 << 4)
-.equ L3GD20_FS_2000,        (0b00 << 4)
+.equ L3GD20_FS_500,         (0b01 << 4)
+.equ L3GD20_FS_2000,        (0b10 << 4)
 
 .equ L3GD20_SIM_MASK,       (1 << 0)
 .equ L3GD20_SIM_4_WIRE,     0x00
@@ -306,9 +306,10 @@ l3gd20_read_xyz:
     mov fp, sp
     sub sp, #8              //Make room on the stack for variables
 
-    ldr r0, =L3GD20_CTRL_REG1   //Address for L3GD20
+    ldr r0, =L3GD20_CTRL_REG4   //Address for L3GD20
     sub r1, fp, #4              //Data ptr
     ldr r2, =0x01               //Size
+    bl l3gd20_read
 
     ldrb r4, [fp, #-4]
     and r4, L3GD20_FS_MASK

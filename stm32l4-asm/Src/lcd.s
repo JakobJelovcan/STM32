@@ -759,6 +759,10 @@ lcd_display_string:
     mov r3, #0          //Double dot
     mov r2, #0          //Dot
     ldrb r1, [r4], #1   //Load next character
+    cmp r1, #0x2E
+    beq 1b
+    cmp r1, #0x3A
+    beq 1b
     add r5, #1          //Increment position
     mov r0, r5
 
@@ -767,7 +771,7 @@ lcd_display_string:
     cmp r1, #0
     beq 2f              //End of string
 
-    ldrb r6, [r4, #1]   //Load next character
+    ldrb r6, [r4]   //Load next character
 
     //If next character is '.' set r2 to 1 and increment r4
     cmp r6, #0x2E
@@ -798,12 +802,11 @@ lcd_display_string:
 .type   lcd_display_long_string, %function
 .global lcd_display_long_string
 lcd_display_long_string:
-    push { r4, r5, r6, lr }
+    push { r4, r5, r6, r7, r8, lr }
 
 
     mov r4, r0          //Address
-    mov r3, #0          //Double dot
-    mov r2, #0          //Dot
+    mov r7, r0
     mov r5, #0          //Position
 
     bl strlen
@@ -812,7 +815,10 @@ lcd_display_long_string:
     bl lcd_wait_update_display_request
     bl lcd_clear_ram
 2:
-    ldrb r1, [r4, r5]   //Load next character
+    mov r3, #0          //Double dot
+    mov r2, #0          //Dot
+    ldrb r1, [r4], #1   //Load next character
+
     add r5, #1          //Increment position
     mov r0, r5
 
@@ -830,7 +836,8 @@ lcd_display_long_string:
     subs r6, #1
     beq 4f
 
-    add r4, #1
+    add r7, #1
+    mov r4, r7
     mov r5, #0
     mov r0, #0x1F4      //Wait 500ms
     bl systick_wait_ms
@@ -838,7 +845,7 @@ lcd_display_long_string:
     b 1b
 4:
 
-    pop { r4, r5, r6, pc }
+    pop { r4, r5, r6, r7, r8, pc }
 
 
 /**
