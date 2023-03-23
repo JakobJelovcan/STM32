@@ -26,12 +26,21 @@ main:
 
 1:
     //Read and display data from the sensor
+    ldr r0, =accelero_data
+    bl lsm303c_read_xyz_a
+
+    bl lsm303c_read_id_m
+
     ldr r0, =gyro_data
-    bl l3gd20_read_xyz
+    //bl l3gd20_read_xyz
+
+    ldr r0, =magneto_data
+  //  bl lsm303c_read_xyz_m
+
 
     ldr r0, =display_str_buffer
-    ldr r4, =gyro_data
-    ldr r1, [r4]
+    ldr r4, =accelero_data
+    vldr.f32 s0, [r4, #4]
     bl print_x
 
     ldr r0, =display_str_buffer

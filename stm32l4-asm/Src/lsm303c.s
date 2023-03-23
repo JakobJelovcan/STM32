@@ -507,7 +507,7 @@ lsm303c_read_temp_m:
 lsm303c_read_xyz_a:
     push { r4, r5, r6, fp, lr }
 
-    mov sp, fp
+    mov fp, sp
     sub sp, #8
     mov r6, r0
 
@@ -557,9 +557,9 @@ lsm303c_read_xyz_a:
     sub r4, fp, #8
     ldr r5, =0x03
     //Multiply the data with the sensitivity factor
-1:  ldrsh r0, [r4], #1
+1:  ldrsh r0, [r4], #2
     vmov.s32 s0, r0
-    vcvt.s32.f32 s0, s0
+    vcvt.f32.s32 s0, s0
     vmul.f32 s0, s0, s1
     vstr.f32 s0, [r6]
     add r6, #4
@@ -576,7 +576,7 @@ lsm303c_read_xyz_a:
 lsm303c_read_xyz_m:
 push { r4, r5, r6, fp, lr }
 
-    mov sp, fp
+    mov fp, sp
     sub sp, #8
     mov r6, r0
 
@@ -611,9 +611,9 @@ push { r4, r5, r6, fp, lr }
     ldr r5, =0x03
 
     //Multiply the data with the sensitivity factor
-1:  ldrsh r0, [r4], #1
+1:  ldrsh r0, [r4], #2
     vmov.s32 s0, r0
-    vcvt.s32.f32 s0, s0
+    vcvt.f32.s32 s0, s0
     vmul.f32 s0, s0, s1
     vstr.f32 s0, [r6]
     add r6, #4
