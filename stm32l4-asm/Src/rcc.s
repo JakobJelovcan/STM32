@@ -298,3 +298,21 @@ rcc_syscfg_clk_disable:
     str r5, [r4, #RCC_APB2ENR]
 
     pop { r4, r5, pc }
+
+.type   rcc_rtc_enable, %function
+.global rcc_rtc_enable
+rcc_rtc_enable:
+    push { r4, r5, lr }
+
+    bl pwr_disable_write_protection
+
+    ldr r4, =RCC_BASE
+    ldr r5, [r4, #RCC_BDCR]
+    bic r5, #(0b11 << 8)    //Clear RTCSEL
+    orr r5, #(0b10 << 8)    //Set RTCSEL
+    orr r5, #(1 << 15)      //Enable RTC
+    str r5, [r4, #RCC_BDCR]
+
+    bl pwr_enable_write_protection
+
+    pop { r4, r5, pc }

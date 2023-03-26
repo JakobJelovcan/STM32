@@ -233,6 +233,7 @@ lcd_init:
     push { r4, r5, r6, lr }
 
     bl rcc_pwr_clk_enable
+    bl rcc_rtc_enable
 
     //Enable lcd gpio pins
     bl rcc_gpioa_clk_enable
