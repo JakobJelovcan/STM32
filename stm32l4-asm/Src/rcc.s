@@ -6,6 +6,7 @@
 .equ RCC_BASE,            0x40021000
 .equ RCC_AHB2ENR,         0x4C
 .equ RCC_APB1ENR1,        0x58
+.equ RCC_APB2ENR,         0x60
 .equ RCC_BDCR,            0x90
 
 .text
@@ -247,5 +248,29 @@ rcc_spi2_clk_disable:
     ldr r5, [r4, #RCC_APB1ENR1]
     bic r5, #(1 << 14)
     str r5, [r4, #RCC_APB1ENR1]
+
+    pop { r4, r5, pc }
+
+.type   rcc_syscfg_clk_enable, %function
+.global rcc_syscfg_clk_enable
+rcc_syscfg_clk_enable:
+    push { r4, r5, lr }
+
+    ldr r4, =RCC_BASE
+    ldr r5, [r4, #RCC_APB2ENR]
+    orr r5, #(1 << 0)
+    str r5, [r4, #RCC_APB2ENR]
+
+    pop { r4, r5, pc }
+
+.type   rcc_syscfg_clk_disable, %function
+.global rcc_syscfg_clk_disable
+rcc_syscfg_clk_disable:
+    push { r4, r5, lr }
+
+    ldr r4, =RCC_BASE
+    ldr r5, [r4, #RCC_APB2ENR]
+    bic r5, #(1 << 0)
+    str r5, [r4, #RCC_APB2ENR]
 
     pop { r4, r5, pc }

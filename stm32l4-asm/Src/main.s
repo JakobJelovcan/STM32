@@ -23,6 +23,7 @@ main:
     bl lsm303c_init_accelerometer
     bl lsm303c_init_magnetometer
     bl lcd_init
+    bl joystick_init_interupt
 
 1:
     //Read and display data from the sensor

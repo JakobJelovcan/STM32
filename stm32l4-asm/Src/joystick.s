@@ -14,31 +14,104 @@
 .equ GPIOx_PUPDR_CLEAR, 0xFFFFF300
 .equ GPIOx_PUPDR_SET,   0x000008AA
 
-.type   init_joystick %function
-.global init_joystick
+.equ GPIO_PIN_0,                    (1 << 0)
+.equ GPIO_PIN_1,                    (1 << 1)
+.equ GPIO_PIN_2,                    (1 << 2)
+.equ GPIO_PIN_3,                    (1 << 3)
+.equ GPIO_PIN_4,                    (1 << 4)
+.equ GPIO_PIN_5,                    (1 << 5)
+.equ GPIO_PIN_6,                    (1 << 6)
+.equ GPIO_PIN_7,                    (1 << 7)
+.equ GPIO_PIN_8,                    (1 << 8)
+.equ GPIO_PIN_9,                    (1 << 9)
+.equ GPIO_PIN_10,                   (1 << 10)
+.equ GPIO_PIN_11,                   (1 << 11)
+.equ GPIO_PIN_12,                   (1 << 12)
+.equ GPIO_PIN_13,                   (1 << 13)
+.equ GPIO_PIN_14,                   (1 << 14)
+.equ GPIO_PIN_15,                   (1 << 15)
 
-init_joystick:
-    push { r4, r5, r6, lr }
+.equ GPIO_MODE_POSITION,            0x00
+.equ GPIO_MODE_MASK,                0x03 << GPIO_MODE_POSITION
+.equ GPIO_MODE_INPUT,               0x00 << GPIO_MODE_POSITION
+.equ GPIO_MODE_OUTPUT,              0x01 << GPIO_MODE_POSITION
+.equ GPIO_MODE_AF,                  0x02 << GPIO_MODE_POSITION
+.equ GPIO_MODE_ANALOG,              0x03 << GPIO_MODE_POSITION
 
-    ldr r4, =RCC_BASE
-    ldr r5, [r4, #RCC_AHB2ENR]
-    orr r5, #1
-    str r5, [r4, #RCC_AHB2ENR]
+.equ GPIO_OUTPUT_TYPE_POSITION,     0x04
+.equ GPIO_OUTPUT_TYPE_MASK,         0x01 << GPIO_OUTPUT_TYPE_POSITION
+.equ GPIO_OUTPUT_TYPE_PP,           0x00 << GPIO_OUTPUT_TYPE_POSITION
+.equ GPIO_OUTPUT_TYPE_OD,           0x01 << GPIO_OUTPUT_TYPE_POSITION
 
-    ldr r4, =GPIOA_BASE
-    ldr r5, [r4, #GPIOx_MODER]
-    ldr r6, =GPIOx_MODER_VALUE
-    and r5, r6
-    str r5, [r4, #GPIOx_MODER]
+.equ GPIO_EXTI_MODE_POSITION,       0x10
+.equ GPIO_EXTI_MODE_MASK,           0x03 << GPIO_EXTI_MODE_POSITION
+.equ GPIO_EXTI_MODE_INTERUPT,       0x01 << GPIO_EXTI_MODE_POSITION
+.equ GPIO_EXTI_MODE_EVENT,          0x02 << GPIO_EXTI_MODE_POSITION
 
-    ldr r5, [r4, #GPIOx_PUPDR]
-    ldr r6, =GPIOx_PUPDR_CLEAR
-    and r5, r6
-    ldr r6, =GPIOx_PUPDR_SET
-    orr r5, r6
-    str r5, [r4, #GPIOx_PUPDR]
+.equ GPIO_TRIGGER_MODE_POSITION,    0x14
+.equ GPIO_TRIGGER_MODE_MASK,        0x07 << GPIO_TRIGGER_MODE_POSITION
+.equ GPIO_TRIGGER_MODE_RISING,      0x01 << GPIO_TRIGGER_MODE_POSITION
+.equ GPIO_TRIGGER_MODE_FALLING,     0x02 << GPIO_TRIGGER_MODE_POSITION
 
-    pop { r4, r5, r6, pc }
+.equ GPIO_MODE_IT_RISING,           (GPIO_MODE_INPUT | GPIO_EXTI_MODE_INTERUPT | GPIO_TRIGGER_MODE_RISING)
+.equ GPIO_MODE_IT_FALLING,          (GPIO_MODE_INPUT | GPIO_EXTI_MODE_INTERUPT | GPIO_TRIGGER_MODE_FALLING)
+
+.equ GPIO_MODE_EVT_RISING,          (GPIO_MODE_INPUT | GPIO_EXTI_MODE_EVENT | GPIO_TRIGGER_MODE_RISING)
+.equ GPIO_MODE_EVT_FALLING,         (GPIO_MODE_INPUT | GPIO_EXTI_MODE_EVENT | GPIO_TRIGGER_MODE_FALLING)
+
+.equ GPIO_SPEED_MASK,               0x03
+.equ GPIO_SPEED_LOW,                0x00
+.equ GPIO_SPEED_MEDIUM,             0x01
+.equ GPIO_SPEED_HIGH,               0x02
+.equ GPIO_SPEED_VERY_HIGH,          0x03
+
+.equ GPIO_PULL_MASK,                0x03
+.equ GPIO_PULL_NONE,                0x00
+.equ GPIO_PULL_UP,                  0x01
+.equ GPIO_PULL_DOWN,                0x02
+
+.equ JOYSTICK_PINS,                 (GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_5)
+
+.type   joystick_init %function
+.global joystick_init
+
+joystick_init:
+    push { r4, r5, fp, lr }
+
+    mov fp, sp
+    ldr r0, =GPIOA_BASE
+    ldr r1, =JOYSTICK_PINS
+    ldr r2, =GPIO_MODE_INPUT            //Mode
+    ldr r3, =GPIO_PULL_DOWN             //Pullup/down
+    ldr r4, =0x00                       //Alternate function
+    str r4, [sp, #-4]!                  //Store on stack
+    ldr r4, =GPIO_SPEED_LOW             //Output speed
+    str r4, [sp, #-4]!                  //Store on stack
+
+    bl gpio_init
+    mov sp, fp
+
+    pop { r4, r5, fp, lr }
+
+.type   joystick_init_interupt, %function
+.global joystick_init_interupt
+joystick_init_interupt:
+    push { r4, r5, fp, lr }
+
+    mov fp, sp
+    ldr r0, =GPIOA_BASE
+    ldr r1, =JOYSTICK_PINS
+    ldr r2, =GPIO_MODE_IT_RISING        //Mode
+    ldr r3, =GPIO_PULL_NONE             //Pullup/down
+    ldr r4, =0x00                       //Alternate function
+    str r4, [sp, #-4]!                  //Store on stack
+    ldr r4, =GPIO_SPEED_LOW             //Output speed
+    str r4, [sp, #-4]!                  //Store on stack
+
+    bl gpio_init
+    mov sp, fp
+
+    pop { r4, r5, fp, lr }
 
 
 .type   read_joystick_status %function
