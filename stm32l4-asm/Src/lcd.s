@@ -410,7 +410,7 @@ lcd_clear:
  * @return None
 */
 .type   lcd_clear_ram, %function
-.local lcd_clear_ram
+.local  lcd_clear_ram
 lcd_clear_ram:
     push { r4, r5, r6, lr }
 
@@ -752,6 +752,7 @@ lcd_display_string:
     push { r4, r5, r6, lr }
 
     bl lcd_wait_update_display_request
+    bl lcd_clear_ram
 
     mov r4, r0
     mov r5, #0          //Position

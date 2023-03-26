@@ -72,6 +72,14 @@
 
 .equ JOYSTICK_PINS,                 (GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_5)
 
+.equ EXTI0_IRQn,                    6
+.equ EXTI1_IRQn,                    7
+.equ EXTI2_IRQn,                    8
+.equ EXTI3_IRQn,                    9
+.equ EXTI4_IRQn,                    10
+.equ EXTI9_5_IRQn,                  23
+.equ EXTI15_10_IRQn,                40
+
 .type   joystick_init %function
 .global joystick_init
 
@@ -102,13 +110,59 @@ joystick_init_interupt:
     ldr r0, =GPIOA_BASE
     ldr r1, =JOYSTICK_PINS
     ldr r2, =GPIO_MODE_IT_RISING        //Mode
-    ldr r3, =GPIO_PULL_NONE             //Pullup/down
+    ldr r3, =GPIO_PULL_DOWN             //Pullup/down
     ldr r4, =0x00                       //Alternate function
     str r4, [sp, #-4]!                  //Store on stack
     ldr r4, =GPIO_SPEED_LOW             //Output speed
     str r4, [sp, #-4]!                  //Store on stack
 
     bl gpio_init
+
+    //Set EXTI0 IRQ
+    ldr r0, =EXTI0_IRQn
+    ldr r1, =0x00
+    ldr r2, =0x00
+    bl nvic_set_priority
+
+    ldr r0, =EXTI0_IRQn
+    bl nvic_enable_irq
+
+    //Set EXTI1 IRQ
+    ldr r0, =EXTI1_IRQn
+    ldr r1, =0x00
+    ldr r2, =0x00
+    bl nvic_set_priority
+
+    ldr r0, =EXTI1_IRQn
+    bl nvic_enable_irq
+
+    //Set EXTI2 IRQ
+    ldr r0, =EXTI2_IRQn
+    ldr r1, =0x00
+    ldr r2, =0x00
+    bl nvic_set_priority
+
+    ldr r0, =EXTI2_IRQn
+    bl nvic_enable_irq
+
+    //Set EXTI3 IRQ
+    ldr r0, =EXTI3_IRQn
+    ldr r1, =0x00
+    ldr r2, =0x00
+    bl nvic_set_priority
+
+    ldr r0, =EXTI3_IRQn
+    bl nvic_enable_irq
+
+    //Set EXTI9_5 IRQ
+    ldr r0, =EXTI9_5_IRQn
+    ldr r1, =0x00
+    ldr r2, =0x00
+    bl nvic_set_priority
+
+    ldr r0, =EXTI9_5_IRQn
+    bl nvic_enable_irq
+
     mov sp, fp
 
     pop { r4, r5, fp, lr }
