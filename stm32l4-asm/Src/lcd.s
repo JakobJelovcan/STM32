@@ -232,6 +232,8 @@ numbers:            .hword 0x5F00, 0x4200, 0xF500, 0x6700, 0xEA00, 0xAF00, 0xBF0
 lcd_init:
     push { r4, r5, r6, lr }
 
+    bl rcc_pwr_clk_enable
+
     //Enable lcd gpio pins
     bl rcc_gpioa_clk_enable
     bl rcc_gpiob_clk_enable

@@ -227,6 +227,30 @@ rcc_lcd_clk_disable:
 
     pop { r4, r5, pc }
 
+.type   rcc_pwr_clk_enable %function
+.global rcc_pwr_clk_enable
+rcc_pwr_clk_enable:
+    push { r4, r5, lr }
+
+    ldr r4, =RCC_BASE
+    ldr r5, [r4, #RCC_APB1ENR1]
+    orr r5, #(1 << 28)
+    str r5, [r4, #RCC_APB1ENR1]
+
+    pop { r4, r5, pc }
+
+.type   rcc_pwr_clk_disable %function
+.global rcc_pwr_clk_disable
+rcc_pwr_clk_disable:
+    push { r4, r5, lr }
+
+    ldr r4, =RCC_BASE
+    ldr r5, [r4, #RCC_APB1ENR1]
+    bic r5, #(1 << 28)
+    str r5, [r4, #RCC_APB1ENR1]
+
+    pop { r4, r5, pc }
+
 .type   rcc_spi2_clk_enable, %function
 .global rcc_spi2_clk_enable
 rcc_spi2_clk_enable:
