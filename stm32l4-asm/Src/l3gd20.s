@@ -301,6 +301,7 @@ l3gd20_read_temp:
 .global l3gd20_read_xyz
 l3gd20_read_xyz:
     push { r4, r5, r6, r7, fp, lr }
+    vpush { s4, s5 }
 
     mov r7, r0
     mov fp, sp
@@ -314,23 +315,23 @@ l3gd20_read_xyz:
     ldrb r4, [fp, #-4]
     and r4, L3GD20_FS_MASK
 
-    //Load constant in to s1 based on the value of FS in L3GD20_CTRL_REG4
+    //Load constant in to s5 based on the value of FS in L3GD20_CTRL_REG4
     teq r4, L3GD20_FS_250
     bne 1f
 
-    vldr.f32 s1, =0x3c0f5c29    //0.00875f
+    vldr.f32 s5, =0x3c0f5c29    //0.00875f
     b 2f
 1:
     teq r4, L3GD20_FS_500
     bne 1f
 
-    vldr.f32 s1, =0x3c8fc505    //0.01755f
+    vldr.f32 s5, =0x3c8fc505    //0.01755f
     b 2f
 1:
     teq r4, L3GD20_FS_2000
     bne 2f
 
-    vldr.f32 s1, =0x3d8f5c29    //0.07f
+    vldr.f32 s5, =0x3d8f5c29    //0.07f
 2:
 
     //Load raw data from the sensor
@@ -343,10 +344,10 @@ l3gd20_read_xyz:
     ldr r4, =3
 
 1:  ldrsh r6, [r5], #2
-    vmov.s32 s0, r6
-    vcvt.f32.s32 s0, s0
-    vmul.f32 s0, s0, s1
-    vstr.f32 s0, [r7]
+    vmov.s32 s4, r6
+    vcvt.f32.s32 s4, s4
+    vmul.f32 s4, s4, s5
+    vstr.f32 s4, [r7]
     add r7, #4
 
     subs r4, #1
@@ -354,6 +355,7 @@ l3gd20_read_xyz:
 
     mov sp, fp
 
+    vpop { s4, s5 }
     pop { r4, r5, r6, r7, fp, pc }
 
 .type   l3gd20_activate, %function

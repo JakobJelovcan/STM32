@@ -42,6 +42,17 @@ main:
     ldr r4, =selected_item
     ldr r5, [r4]
 
+    //Read data from the sensors
+    ldr r0, =gyro_data
+    bl l3gd20_read_xyz
+
+    ldr r0, =accelero_data
+    bl lsm303c_read_xyz_a
+
+    ldr r0, =magneto_data
+    bl lsm303c_read_xyz_m
+
+
     cmp r5, #0
     bne 2f
 
@@ -53,8 +64,6 @@ main:
     cmp r5, #1
     bne 2f
 
-    ldr r0, =gyro_data
-    bl l3gd20_read_xyz
 
     ldr r0, =display_str_buffer
     ldr r4, =gyro_data
@@ -69,9 +78,6 @@ main:
     cmp r5, #2
     bne 2f
 
-    ldr r0, =gyro_data
-    bl l3gd20_read_xyz
-
     ldr r0, =display_str_buffer
     ldr r4, =gyro_data
     vldr.f32 s0, [r4, #4]
@@ -84,9 +90,6 @@ main:
 2:
     cmp r5, #3
     bne 2f
-
-    ldr r0, =gyro_data
-    bl l3gd20_read_xyz
 
     ldr r0, =display_str_buffer
     ldr r4, =gyro_data
@@ -109,9 +112,6 @@ main:
     cmp r5, #5
     bne 2f
 
-    ldr r0, =magneto_data
-    bl lsm303c_read_xyz_m
-
     ldr r0, =display_str_buffer
     ldr r4, =magneto_data
     vldr.f32 s0, [r4]
@@ -125,9 +125,6 @@ main:
     cmp r5, #6
     bne 2f
 
-    ldr r0, =magneto_data
-    bl lsm303c_read_xyz_m
-
     ldr r0, =display_str_buffer
     ldr r4, =magneto_data
     vldr.f32 s0, [r4, #4]
@@ -140,9 +137,6 @@ main:
 2:
     cmp r5, #7
     bne 2f
-
-    ldr r0, =magneto_data
-    bl lsm303c_read_xyz_m
 
     ldr r0, =display_str_buffer
     ldr r4, =magneto_data
@@ -165,9 +159,6 @@ main:
     cmp r5, #9
     bne 2f
 
-    ldr r0, =accelero_data
-    bl lsm303c_read_xyz_a
-
     ldr r0, =display_str_buffer
     ldr r4, =accelero_data
     vldr.f32 s0, [r4]
@@ -179,9 +170,6 @@ main:
 2:
     cmp r5, #10
     bne 2f
-
-    ldr r0, =accelero_data
-    bl lsm303c_read_xyz_a
 
     ldr r0, =display_str_buffer
     ldr r4, =accelero_data
@@ -195,9 +183,6 @@ main:
     cmp r5, #11
     bne 3f
 
-    ldr r0, =accelero_data
-    bl lsm303c_read_xyz_a
-
     ldr r0, =display_str_buffer
     ldr r4, =accelero_data
     vldr.f32 s0, [r4, #8]
@@ -205,27 +190,6 @@ main:
 
     ldr r0, =display_str_buffer
     bl lcd_display_string
-    //Read and display data from the sensor
-    /*ldr r0, =accelero_data
-    bl lsm303c_read_xyz_a
-
-    bl lsm303c_read_id_m
-
-    ldr r0, =gyro_data
-    //bl l3gd20_read_xyz
-
-    ldr r0, =magneto_data
-  //  bl lsm303c_read_xyz_m
-
-
-    ldr r0, =display_str_buffer
-    ldr r4, =accelero_data
-    vldr.f32 s0, [r4, #4]
-    bl print_x
-
-    ldr r0, =display_str_buffer
-    bl lcd_display_string
-*/
 3:
     //Wait 500ms
     mov r0, #0x1F4
