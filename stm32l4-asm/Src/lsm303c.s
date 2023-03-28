@@ -237,6 +237,14 @@
 .equ LSM303C_READ_COMMAND,          (1 << 7)
 .equ LSM303C_MULTI_COMMAND,         (1 << 6)
 
+.data
+magneto_calibration_data:   .space 24   //Contains min and max values for calibration
+/*
+ * max_x, max_y, max_z, min_x, min_y, min_z
+ */
+
+.align
+
 .text
 
 .type   lsm303c_write_a, %function
@@ -506,7 +514,7 @@ lsm303c_read_temp_m:
 .global lsm303c_read_xyz_a
 lsm303c_read_xyz_a:
     push { r4, r5, r6, fp, lr }
-    vpop { s4, s5 }
+    vpush { s4, s5 }
 
     mov fp, sp
     sub sp, #8
@@ -627,4 +635,209 @@ lsm303c_read_xyz_m:
     mov sp, fp
 
     vpop { s4, s5 }
+    pop { r4, r5, r6, fp, pc }
+
+.type   calibrate_m, %function
+.global calibrate_m
+calibrate_m:
+    push { r4, r5, fp, lr }
+    vpush { s4, s5, s6 }
+
+    mov fp, sp
+    sub sp, #12
+
+    ldr r4, =0x64
+    ldr r5, =magneto_calibration_data
+1:  
+    mov r0, sp
+    bl lsm303c_read_xyz_m
+    
+    //X axis
+    vldr.f32 s4, [sp]
+    vldr.f32 s5, [r5]
+    vldr.f32 s6, [r5, #12]
+    vcmp.f32 s4, s5
+    IT gt
+    vstrgt.f32 s4, [r5]
+    vcmp.f32 s4, s6
+    IT lt
+    vstrlt.f32 s4, [r5, #12]
+
+    //Y axis
+    vldr.f32 s4, [sp, #4]
+    vldr.f32 s5, [r5, #4]
+    vldr.f32 s6, [r5, #16]
+    vcmp.f32 s4, s5
+    IT gt
+    vstrgt.f32 s4, [r5, #4]
+    vcmp.f32 s4, s6
+    IT lt
+    vstrlt.f32 s4, [r5, #16]
+
+    //Z axis
+    vldr.f32 s4, [sp, #8]
+    vldr.f32 s5, [r5, #8]
+    vldr.f32 s6, [r5, #20]
+    vcmp.f32 s4, s5
+    IT gt
+    vstrgt.f32 s4, [r5, #8]
+    vcmp.f32 s4, s6
+    IT lt
+    vstrlt.f32 s4, [r5, #20]
+
+    subs r4, #1
+    bne 1b
+
+    mov sp, fp
+
+    vpop { s4, s5, s6 }
+    pop { r4, r5, fp, pc }
+
+/**
+ * @summary This function takes a vector of values from the magnetometer and the accelerometer and converst the data into the compass angle
+ * @param vector of magnetometer values
+ * @param vector of accelerometer values
+ * @return angle in degrees
+ */
+.type   gauss_to_angle, %function
+.global gauss_to_angle
+gauss_to_angle:
+    push { r4, r5, r6, fp, lr }
+    vpush { s4, s5, s6, s7, s8, s9, s10, s11 }
+
+    mov fp, sp
+    mov r4, r0
+    mov r5, r1
+    ldr r6, =magneto_calibration_data
+    sub sp, #20           //Make room on the stack for variables
+
+    //Normalize acceleration
+    vldr.f32 s4, [r5]
+    vldr.f32 s5, [r5, #4]
+    vldr.f32 s6, [r5, #8]
+    vmul.f32 s7, s4, s4
+    vmul.f32 s8, s5, s5
+    vmul.f32 s9, s6, s6
+    vadd.f32 s7, s8
+    vadd.f32 s7, s9
+    vsqrt.f32 s7, s7
+
+    vldr.f32 s4, [r5]
+    vldr.f32 s5, [r5, #4]
+    vdiv.f32 s4, s4, s7
+    vdiv.f32 s4, s5, s7
+    vstr.f32 s4, [fp, #-8]
+    vstr.f32 s5, [fp, #-4]
+
+    //Scale magnetometer values in accordance with the calibration data
+    vldr.f32 s7, =0x40000000
+    vldr.f32 s8, =0x3f800000
+
+    // mag_s = (((mag - min) / (max - min)) * 2) - 1
+
+    //X axis
+    vldr.f32 s4, [r4]   //magneto_x
+    vldr.f32 s5, [r6]   //max_x
+    vldr.f32 s6, [r6, #12]  //min_x
+    vsub.f32 s4, s6
+    vsub.f32 s5, s6
+    vdiv.f32 s4, s4, s5
+    vmul.f32 s4, s7
+    vsub.f32 s4, s8
+    vstr.f32 s4, [fp, #-20]
+
+    //Y axis
+    vldr.f32 s4, [r4, #4]   //magneto_y
+    vldr.f32 s5, [r6, #4]   //max_y
+    vldr.f32 s6, [r6, #16]  //min_y
+    vsub.f32 s4, s6
+    vsub.f32 s5, s6
+    vdiv.f32 s4, s4, s5
+    vmul.f32 s4, s7
+    vsub.f32 s4, s8
+    vstr.f32 s4, [fp, #-16]
+
+    //Z axis
+    vldr.f32 s4, [r4, #8]   //magneto_z
+    vldr.f32 s5, [r6, #8]   //max_z
+    vldr.f32 s6, [r6, #20]  //min_z
+    vsub.f32 s4, s6
+    vsub.f32 s5, s6
+    vdiv.f32 s4, s4, s5
+    vmul.f32 s4, s7
+    vsub.f32 s4, s8
+    vstr.f32 s4, [fp, #-12]
+
+    //Calculate pitch
+    //asin(-acceleration_x)
+    vldr.f32 s4, [fp, #-8]
+    vneg.f32 s0, s4
+    bl asinf
+
+    vmov.f32 s4, s0
+    bl sinf
+    vmov.f32 s6, s0 //sin(pitch)
+    vmov.f32 s0, s4
+    bl cosf
+    vmov.f32 s7, s0 //cos(pitch)
+
+    //Calculate roll
+    //asin(acceleration_y / cos(pitch))
+    vldr.f32 s0, [fp, #-4]
+    bl asinf
+    vdiv.f32 s0, s0, s7
+
+    vmov.f32 s4, s0
+    bl sinf
+    vmov.f32 s8, s0 //sin(roll)
+    vmov.f32 s0, s4
+    bl cosf
+    vmov.f32 s9, s0 //cos(roll)
+
+    //mag_x * cos(pitch) + mag_z * sin(pitch)
+    vldr.f32 s4, [r4]
+    vldr.f32 s5, [r4, #8]
+    vmul.f32 s4, s7
+    vmul.f32 s5, s6
+    vadd.f32 s10, s4, s5
+
+    //mag_x * sin(roll) * sin(pitch) + mag_y * cos(roll) - mag_z * sin(roll) * cos(pitch)
+    vldr.f32 s4, [r4]
+    vldr.f32 s5, [r4, #4]
+    vmul.f32 s4, s8
+    vmul.f32 s11, s6
+
+    vldr.f32 s4, [r4, #8]
+    vmul.f32 s5, s9
+    vmul.f32 s4, s8
+    vadd.f32 s11, s5
+    vmul.f32 s4, s7
+    vsub.f32 s11, s4
+
+    //atan2(s11, s10) * (180 / pi)
+    vmov.f32 s0, s11
+    vmov.f32 s1, s10
+    bl atan2f
+    vmov.f32 s4, s0
+    vldr.f32 s5, =0x42652ee1
+    vmul.f32 s4, s5
+
+    vcmp.f32 s4, #0.0
+    vldr.f32 s5, =0x43b40000
+    IT lo
+    vaddlo.f32 s4, s5
+
+    vsub.f32 s4, s5, s4
+    vldr.f32 s6, =0x438c0000
+    vsub.f32 s4, s6
+
+    vcmp.f32 s4, #0.0
+    IT lo
+    vaddlo.f32 s4, s5
+
+    vmov.f32 s0, s4
+
+    mov sp, fp
+
+    vpop { s4, s5, s6, s7, s8, s9, s10, s11 }
     pop { r4, r5, r6, fp, pc }

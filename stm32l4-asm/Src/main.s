@@ -115,6 +115,7 @@ main:
     ldr r0, =display_str_buffer
     ldr r4, =magneto_data
     vldr.f32 s0, [r4]
+
     bl print_x
 
     ldr r0, =display_str_buffer

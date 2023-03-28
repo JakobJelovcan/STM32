@@ -20,20 +20,21 @@
 .global dot
 dot:
     push { lr }
-    vpush { s4, s5 }
+    vpush { s4, s5, s6, s7 }
 
     vldr.f32 s0, [r0]
-    vldr.f32 s4, [r0, #4]
-    vldr.f32 s5, [r0, #8]
-
-    vmul.f32 s0, s0, s0
-    vmul.f32 s4, s4, s4
-    vmul.f32 s5, s5, s5
-
-    vadd.f32 s0, s4
+    vldr.f32 s4, [r1]
+    vldr.f32 s5, [r0, #4]
+    vmul.f32 s0, s4
+    vldr.f32 s6, [r1, #4]
+    vldr.f32 s7, [r0, #8]
+    vldr.f32 s8, [r1, #8]
+    vmul.f32 s5, s6
     vadd.f32 s0, s5
+    vmul.f32 s7, s8
+    vadd.f32 s0, s7
 
-    vpop { s4, s5 }
+    vpop { s4, s5, s6, s7 }
     pop { pc }
 
 /**
