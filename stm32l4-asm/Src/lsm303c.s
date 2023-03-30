@@ -518,6 +518,7 @@ lsm303c_read_xyz_a:
 
     cmp r0, LSM303C_FS_2G_A
     bne 1f
+    vldr.f32 s5, =0x387fda40
     b 2f
 1:
     cmp r0, LSM303C_FS_4G_A
@@ -560,6 +561,7 @@ lsm303c_read_xyz_a:
 1:  ldrsh r0, [r4], #2
     vmov.s32 s4, r0
     vcvt.f32.s32 s4, s4
+    vmul.f32 s4, s4, s5
     vstr.f32 s4, [r6]
     add r6, #4
 
