@@ -20,3 +20,8 @@ void print_z(char* target, float value)
 	gcvt(value, 5, buffer);
 	sprintf(target, "Z:%s", buffer);
 }
+
+void print(char* target, int value)
+{
+	sprintf(target, "%d", value);
+}

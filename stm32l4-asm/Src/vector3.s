@@ -214,3 +214,60 @@ length:
 
     vpop { s4, s5 }
     pop { pc }
+
+/**
+ * @summary The function stores the min and max recorded values for x, y and z
+ * @param vector
+ * @param current min, max values (min_x, min_y, min_z, max_x, max_y, max_z)
+ * @return the length of the vector
+*/
+.type   record_min_max, %function
+.global record_min_max
+record_min_max:
+    push { r4, r5, lr }
+    vpush { s4, s5, s6 }
+
+    mov r4, r0
+    mov r5, r1
+
+    //X
+    vldr.f32 s4, [r4]
+    vldr.f32 s5, [r5, #12]
+    vldr.f32 s6, [r5]
+    vcmp.f32 s4, s5
+    vmrs apsr_nzcv, fpscr
+    IT gt
+    vstrgt.f32 s4, [r5, #12]
+    vcmp.f32 s4, s6
+    vmrs apsr_nzcv, fpscr
+    IT lt
+    vstrlt.f32 s4, [r5]
+
+    //Y
+    vldr.f32 s4, [r4, #4]
+    vldr.f32 s5, [r5, #16]
+    vldr.f32 s6, [r5, #4]
+    vcmp.f32 s4, s5
+    vmrs apsr_nzcv, fpscr
+    IT gt
+    vstrgt.f32 s4, [r5, #16]
+    vcmp.f32 s4, s6
+    vmrs apsr_nzcv, fpscr
+    IT lt
+    vstrlt.f32 s4, [r5, #4]
+
+    //Z
+    vldr.f32 s4, [r4, #8]
+    vldr.f32 s5, [r5, #20]
+    vldr.f32 s6, [r5, 8]
+    vcmp.f32 s4, s5
+    vmrs apsr_nzcv, fpscr
+    IT gt
+    vstrgt.f32 s4, [r5, #20]
+    vcmp.f32 s4, s6
+    vmrs apsr_nzcv, fpscr
+    IT lt
+    vstrlt.f32 s4, [r5, #8]
+
+    vpop { s4, s5, s6 }
+    pop { r4, r5, pc }
