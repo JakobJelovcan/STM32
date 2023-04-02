@@ -133,9 +133,9 @@
 .equ LSM303C_IF_ADD_INC_ENABLE_A,   (1 << 2)
 .equ LSM303C_IF_ADD_INC_DISABLE_A,  0x00
 
-.equ LSM303C_IC2_MASK_A,            (1 << 1)
-.equ LSM303C_IC2_ENABLE_A,          (1 << 1)
-.equ LSM303C_IC2_DISABLE_A,         0x00
+.equ LSM303C_I2C_MASK_A,            (1 << 1)
+.equ LSM303C_I2C_ENABLE_A,          (1 << 1)
+.equ LSM303C_I2C_DISABLE_A,         0x00
 
 .equ LSM303C_SIM_MASK_A,            (1 << 0)
 .equ LSM303C_SIM_SPI_RW_A,          (1 << 0)
@@ -194,9 +194,9 @@
 .equ LSM303C_FS_MASK_M,             (0b11 << 5)
 .equ LSM303C_FS_16G_M,              (0b11 << 5)
 
-.equ LSM303C_IC2_MASK_M,            (1 << 7)
-.equ LSM303C_IC2_DISABLE_M,         (1 << 7)
-.equ LSM303C_IC2_ENABLE_M,          0x00
+.equ LSM303C_I2C_MASK_M,            (1 << 7)
+.equ LSM303C_I2C_DISABLE_M,         (1 << 7)
+.equ LSM303C_I2C_ENABLE_M,          0x00
 
 .equ LSM303C_LP_MASK_M,             (1 << 5)
 .equ LSM303C_LP_ENABLE_M,           (1 << 5)
@@ -402,7 +402,7 @@ lsm303c_init_accelerometer:
 
     //CTRL_REG4
     ldr r0, =LSM303C_CTRL_REG4_A
-    ldr r1, =(LSM303C_FS_2G_A | LSM303C_IC2_DISABLE_A | LSM303C_SIM_SPI_RW_A)
+    ldr r1, =(LSM303C_FS_2G_A | LSM303C_I2C_DISABLE_A | LSM303C_SIM_SPI_RW_A)
     bl lsm303c_write_a
 
     mov sp, fp
@@ -442,7 +442,7 @@ lsm303c_init_magnetometer:
 
     //CTRL_REG3
     ldr r0, =LSM303C_CTRL_REG3_M
-    ldr r1, =(LSM303C_IC2_DISABLE_M | LSM303C_SIM_SPI_RW_M | LSM303C_LP_DISABLE_M | LSM303C_MD_CONTINUOUS_M)
+    ldr r1, =(LSM303C_I2C_DISABLE_M | LSM303C_SIM_SPI_RW_M | LSM303C_LP_DISABLE_M | LSM303C_MD_CONTINUOUS_M)
     bl lsm303c_write_m
 
     //CTRL_REG4

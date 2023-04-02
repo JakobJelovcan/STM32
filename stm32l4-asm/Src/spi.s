@@ -300,15 +300,6 @@ spi2_receive:
 
     bl spi2_enable
 
-    dsb sy
-    dsb sy
-    dsb sy
-    dsb sy
-    dsb sy
-    dsb sy
-    dsb sy
-    dsb sy
-
     bl spi2_disable
 
     ldr r4, =SPI2_BASE

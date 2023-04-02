@@ -5,15 +5,16 @@
 
 .data
 selected_item:      .byte 0
-item_count:         .byte 10
-selected_subitem:   .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-subitem_max_count:  .byte 0, 1, 1, 1, 1, 0, 0, 1, 1, 1
-subitem_min_count:  .byte 0, -1, -1, -1, 0, 0, 0, -1, -1, -1
+item_count:         .byte 12
+selected_subitem:   .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+subitem_max_count:  .byte 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0
+subitem_min_count:  .byte 0, -1, -1, -1, 0, 0, 0, -1, -1, -1, 0, 0
 
 gyro_title:         .asciz "Gyro"
 magneto_title:      .asciz "Compas"
 accelero_title:     .asciz "Accelerometer"
 calibration_title:  .asciz "Calibrate"
+temperature_title:  .asciz "Temp"
 
 .align
 gyro_data:          .space 12
@@ -70,10 +71,6 @@ main:
 
     ldr r0, =magneto_data
     bl lsm303c_read_xyz_m
-    //ldr r0, =magneto_data
-    //ldr r1, =magneto_min_max
-    //bl record_min_max
-
 
     cmp r5, #0
     bne 2f
@@ -310,6 +307,27 @@ main:
 5:
     ldr r0, =display_str_buffer
     bl print_z
+    ldr r0, =display_str_buffer
+    bl lcd_display_string
+    b 3f
+
+//Temperature
+2:
+    cmp r5, #10
+    bne 2f
+    ldr r0, =temperature_title
+    bl lcd_display_string
+    b 3f
+
+2:
+    cmp r5, #11
+    bne 3f
+
+    bl l3gd20_read_temp
+    mov r1, r0
+    ldr r0, =display_str_buffer
+    bl print
+
     ldr r0, =display_str_buffer
     bl lcd_display_string
     b 3f
