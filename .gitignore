@@ -1,0 +1,20 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/stm32h7-asm/.vs
+/stm32h7-asm/.vscode
+/stm32h7-asm/build/debug/build
+/stm32h7-asm/CMakeLists.txt
+/stm32h7-asm-dn2/.vs
+/stm32h7-asm-dn2/.vscode
+/stm32h7-asm-dn2/build/debug/build
+/stm32l4-asm/.vs
+/stm32l4-asm/.vscode
+/stm32l4-asm/build/debug/build
+/stm32l4-asm-dn2/.vs
+/stm32l4-asm-dn2/.vscode
+/stm32l4-asm-dn2/build/debug/build
+/stm32l4-c/.vscode
+/stm32l4-c/build/debug/build
